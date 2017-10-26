@@ -1,0 +1,144 @@
+\documentclass[]{myclass}
+\usepackage[cp1250]{inputenc}
+\usepackage[OT4]{fontenc}
+\usepackage{hyperref}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{multirow}
+\usepackage{subfig}
+\usepackage{float}
+\usepackage{amsfonts}
+\usepackage{pdfpages}
+\usepackage{listings}
+\usepackage[english]{babel}
+\usepackage{titling}
+\usepackage{tocbibind}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\lstset {
+basicstyle=\small,
+breaklines=true,
+commentstyle=\color{mygreen},
+keywordstyle=\color{blue},
+language=C,
+linewidth=\textwidth
+}
+\linespread{1}
+
+\author{Marcin Aftowicz}
+\title{Hardware Test and fault diagnosis based on extended FEC functions  in wireless communication systems}
+\mysupervisor{Prof. Dr.-Ing. H. T. Vierhaus \and Ing. Petr Pfeifer, MSc, MBA, Ph.D.}
+\myyear{2018}
+
+\begin{document}
+\selectlanguage{english}
+\bibliographystyle{plplain}
+
+% Front matter **************************************
+\frontmatter
+\pagestyle{empty}%
+\maketitle  \cleardoublepage
+
+\pagenumbering{Roman}
+\input{statutory_declaration.tex}   \cleardoublepage
+
+\pagestyle{ppfcmthesis}
+\input{abstract.tex}    \cleardoublepage
+
+\listoffigures  \cleardoublepage
+\listoftables   \cleardoublepage
+
+\hypersetup{
+    linkcolor={blue!70!black},
+    citecolor={blue!70!black},
+    urlcolor={blue!70!black}
+}
+\tableofcontents \cleardoublepage
+
+% Main matter **************************************
+\mainmatter
+ 
+%Define necessary functions for diagnostic tests	   
+%Define encoder/decoder extensions	   
+%Implement extensions on FPGAs	   
+%Develop diagnostic test interface software to control / set optional parameters and record results	   
+%Implement into FPGA an experimental set-up	   
+%Conduct measurements on examples
+
+%das Block-Diagramm zu ParSec zeigen
+%zeigen wie der Baseband-Prozessor aufgebaut ist (digital-analog), so dass ein direkter interner Test mit bekannten "digitalen" Verfahren schwierig ist.
+%vorstellen, dass man bei einem System wie in ParSec ohne FEC nicht auskommt.
+%Zeigen, dass FEC-Komponenten partiell eigene Fehler korrigieren.
+%zeigen (Petr!) wie man bei den FEC-Komponenten Selbsttest-Funktionen einbauen kann.
+
+%=============================================================
+\chapter{Introduction and motivation} \label{ch:introduction}
+The wireless communication system consist of the source encoder and decoder, which get rid of the useless redundancy maximizing the information throughput, followed by cryptographic encoder and decoder, to make the information secret, followed by the channel encoder and decoder for error detection and correction. Then the information is processed by a baseband processor and is sent over radio. 
+%=============================================================
+%\input{wstep.tex}
+
+\chapter{Literature overview \label{ch:literature}
+W tym rozdziale opisano protoko�y komunikacyjne wzi�te pod uwag� podczas projektowania systemu oraz om�wiono spos�b dzia�ania u�ytych modu��w. Jest to zbi�r wiedzy teoretycznej, niezb�dnej w celu zaprojektowania omawianego systemu oraz pe�nego zrozumienia jego funkcjonowania.
+%=============================================================
+\section{G��wna magistrala komunikacyjna} \label{sec:can}
+%\input{can.tex}
+
+\section{Archiwizacja danych} \label{sec:sd}
+%\input{sd.tex}
+
+\section{Komunikacja bezprzewodowa} \label{sec:xbee}
+%\input{xbee.tex}
+
+\chapter{Coding theory} \label{ch:coding}
+
+\begin  {figure}  
+\centering
+\includegraphics[width=0.65\textwidth]{figures/GUI_Main.PNG}
+\caption{G³ówne okno programu}
+\label{fig:GUI_Main}
+\end {figure}
+%=============================================================
+\section{Model systemu} \label{sec:model}
+
+%\input{model.tex}
+
+\section{G��wny komputer pok�adowy}
+\textit{Autor: Marcin Aftowicz}\\ \\
+
+%\input{cpu.tex}
+
+\section{Rozproszone jednostki pomiarowe}
+\textit{Autor: Jakub Baranowski}\\ \\
+
+%\input{Hub.tex}
+
+\section{Zdalny interfejs u�ytkownika}
+\textit{Autor: Jakub Baranowski}\\ \\
+
+%\input{interface.tex}
+
+\chapter{Badania eksperymentalne} \label{ch:eksperyment}
+\textit{Autorzy: Marcin Aftowicz, Jakub Baranowski}\\ \\
+
+Rozdzia� po�wi�cony jest badaniu dzia�ania systemu. Przedstawiono w nim dow�d na poprawne jego funkcjonowanie oraz na spe�nienie za�o�e� projektowych. Zbadano przebiegi sygna��w i skonfrontowano je z teori�. Por�wnano protoko�y oraz rozwi�zania u�yte w prototypie systemu, z tymi z wersji aktualnej. Pokazano wy�szo�� systemu nad prototypem oraz ograniczenia, kt�re musz� zosta� zlikwidowane w przysz�o�ci.
+%=============================================================
+%\input{exp.tex}
+
+
+
+\chapter{Podsumowanie}
+\textit{Autor: Jakub Baranowski}\\ \\
+%=============================================================
+%\input{Podsumowanie.tex}
+
+
+% All appendices and extra material, if you have any.
+\cleardoublepage
+\appendix%
+
+%\input{Rysunki_techniczne.tex}
+%%\input{plyta.tex}
+%\cleardoublepage
+\hypersetup{ linkcolor={black}}
+\cleardoublepage
+
+\bibliography{bibliografia}
+\end{document}
