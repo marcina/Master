@@ -71,30 +71,26 @@ linewidth=\textwidth
 
 %=============================================================
 \chapter{Introduction and motivation} \label{ch:introduction}
+Wireless signal transmission and data storage are getting more and more exposed to faults. For many years scientists have investigated the problem and suggested 
 The wireless communication system consist of the source encoder and decoder, which get rid of the useless redundancy maximizing the information throughput, followed by cryptographic encoder and decoder, to make the information secret, followed by the channel encoder and decoder for error detection and correction. Then the information is processed by a baseband processor and is sent over radio. 
+When using hash functions even a single bit flip leads to totally different results.
 %=============================================================
-%\input{wstep.tex}
-
-\chapter{Literature overview \label{ch:literature}
-W tym rozdziale opisano protoko�y komunikacyjne wzi�te pod uwag� podczas projektowania systemu oraz om�wiono spos�b dzia�ania u�ytych modu��w. Jest to zbi�r wiedzy teoretycznej, niezb�dnej w celu zaprojektowania omawianego systemu oraz pe�nego zrozumienia jego funkcjonowania.
-%=============================================================
-\section{G��wna magistrala komunikacyjna} \label{sec:can}
-%\input{can.tex}
-
-\section{Archiwizacja danych} \label{sec:sd}
-%\input{sd.tex}
-
-\section{Komunikacja bezprzewodowa} \label{sec:xbee}
-%\input{xbee.tex}
 
 \chapter{Coding theory} \label{ch:coding}
+In the year 1948 Shannon published a landmarking article about the theory of communication, \cite{article:shannon} where he showed that with certain information encoding the errors induced by noisy channel can be significantly reduced. The data transmission and data storage can be both treated as equivalent in the digital data transmission path model shown in \hyperref[fig:data_path]{Figure~\ref*{fig:data_path}}. They both transfer data from the source to sink and they are both exposed to noise during the process.\\
 
-\begin  {figure}  
+\section{Channel coding} label{sec:channel}
+In relation to \hyperref[fig:data_path]{Figure~\ref*{fig:data_path}} the purpose of the channel encoder is to transform the information sequence $u$, produced by the source encoder, into a discrete sequence called $code word$
+
+\begin  {figure}  [h]
 \centering
-\includegraphics[width=0.65\textwidth]{figures/GUI_Main.PNG}
-\caption{G³ówne okno programu}
-\label{fig:GUI_Main}
+\includegraphics[width=0.65\textwidth]{figures/Data_transmission_path.png}
+\caption{Block diagram of a typical data transmission system \cite{book:1983}}
+\label{fig:data_path}
 \end {figure}
+
+While the source encoder strips the source output of redundant bits, maximizing the information throughput; the channel encoder adds useful bits to allow reliable data transfer, therefore the channel encoder will be the subject of further investigation. 
+
 %=============================================================
 \section{Model systemu} \label{sec:model}
 
