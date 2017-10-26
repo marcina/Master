@@ -7,4 +7,13 @@
   author    = {Lin, Shu and Costello, Jr., Daniel J.},
 }
 
+@Article{article:shannon,
+  author  = {Shannon, E. C.},
+  title   = {A Mathematical Theory of Communication},
+  journal = {Bell Syst. Tech. J.},
+  year    = {1948},
+  pages   = {379-423, 623-656},
+  month   = {J},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}
