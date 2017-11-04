@@ -12,6 +12,8 @@
 \usepackage[english]{babel}
 \usepackage{titling}
 \usepackage{tocbibind}
+\usepackage[all]{nowidow}
+\usepackage{comment}
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \lstset {
 basicstyle=\small,
@@ -70,62 +72,64 @@ linewidth=\textwidth
 %zeigen (Petr!) wie man bei den FEC-Komponenten Selbsttest-Funktionen einbauen kann.
 
 %=============================================================
-\chapter{Introduction and motivation} \label{ch:introduction}
+\chapter{Introduction and motivation} \label{ch:int}
+
 Wireless signal transmission and data storage are getting more and more exposed to faults. For many years scientists have investigated the problem and suggested 
 The wireless communication system consist of the source encoder and decoder, which get rid of the useless redundancy maximizing the information throughput, followed by cryptographic encoder and decoder, to make the information secret, followed by the channel encoder and decoder for error detection and correction. Then the information is processed by a baseband processor and is sent over radio. 
 When using hash functions even a single bit flip leads to totally different results.
+
 %=============================================================
+\chapter{Dependability} \label{ch:dep}
+What makes a system dependable and what does dependability actually mean? \\
+The dependable system is a system, which has the ability to deliver it's service with acceptable number and severity of system failures~\cite{art:Avizienis}. It is in other words the quality of the system's service~\cite{art:Laprie}. Above all the dependability is an integrating term that encapsulates following \textbf{attributes}:
+\begin{itemize}
+\item \textbf{availability} - readiness for the delivery of correct service,
+\item \textbf{reliability} - permanence in the delivery of correct service,
+\item \textbf{safety} - absence of catastrophic system failures and ability to transit and reside in the fail-safe state,
+\item \textbf{integrity} - impossibility of the system alteration (by unauthorised subjects),
+\item \textbf{maintainability} - possibility of the system alteration and repairs (by authorised subjects)~\cite{art:Laprie}\cite{art:Avizienis}.
+\end{itemize}
+The mentioned above definitions are based on two important terms: system failure and correct service, being in fact antonyms. The absence of one means the presence of the other. A system failure is therefore one of the impairments that threaten the  dependability. There are three \textbf{threats}, that form a hierarchical structure:
+\begin{itemize}
+    \item \textbf{failure} - a state when system delivers service that deviates from the functional specification or the specification describes systems function not adequately; also a transition from a correct state to the described state. Failure happens as a consequence of an error.
+    \item \textbf{error} - part of the system state, which may lead to the system failure, but doesn't have to. An error may be latent (after the fault occurrence) or get activated and become effective,
+    \item \textbf{fault} - a primary term, an undesired circumstance affecting the system, being a cause of an error.
+\end{itemize}
+The hierarchical structure of dependability threats results in the cause and effect relationship called fault propagation. It is illustrated in the {Figure~\ref*{fig:propagation}}. 
+%definition and taxonomy.  Distinguish faults errors and failures. Permanent and transient faults, wireless strongly disturbed medium, radiation, hardware faults. Means of Dependability, Fault tolerance against fault avoidance
 
-\chapter{Coding theory} \label{ch:coding}
-In the year 1948 Shannon published a landmarking article about the theory of communication, \cite{article:shannon} where he showed that with certain information encoding the errors induced by noisy channel can be significantly reduced. The data transmission and data storage can be both treated as equivalent in the digital data transmission path model shown in \hyperref[fig:data_path]{Figure~\ref*{fig:data_path}}. They both transfer data from the source to sink and they are both exposed to noise during the process.\\
+\begin  {figure}  [H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/DepTax.PNG}
+\caption{Dependability Taxonomy~\cite{art:Avizienis}}
+\label{fig:deptax}
+\end {figure}
 
-\section{Channel coding} label{sec:channel}
-In relation to \hyperref[fig:data_path]{Figure~\ref*{fig:data_path}} the purpose of the channel encoder is to transform the information sequence $u$, produced by the source encoder, into a discrete sequence called $code word$
+\section{Channel Coding} \label{sec:cod}
+In the year 1948 Shannon published a landmarking paper "Mathematical Theory of Communication" where he showed that, with a certain information encoding, the errors induced by a noisy channel can be reduced to any suitable level~\cite{art:Shannon}. With this article he started the era of coding theory and a race to create better and better codes with simple decoding algorithms~\cite{book:Lint}. He laid the mathematical foundation of reliable communication, which gets improved until this day.\\
 
-\begin  {figure}  [h]
+\begin  {figure}  [H]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/Data_transmission_path.png}
-\caption{Block diagram of a typical data transmission system \cite{book:1983}}
+\caption{Block diagram of a typical data transmission (storage) system~\cite{book:LinCostello}}
 \label{fig:data_path}
 \end {figure}
 
-While the source encoder strips the source output of redundant bits, maximizing the information throughput; the channel encoder adds useful bits to allow reliable data transfer, therefore the channel encoder will be the subject of further investigation. 
+\noindent\hyperref[fig:data_path]{Figure~\ref*{fig:data_path}} represents a typical information transmission system. Firstly the source encoder transforms the source output into a sequence of bits, called \textit{information sequence} \textbf{u}, trying to minimize the number of bits needed to represent the source output. The source output should be easily reproduced by the source decoder without ambiguity. The purpose of the channel encoder is to transform the information sequence into a discrete sequence \textbf{v} called the \textit{code~word}. The code word should allow the channel decoder, despite possible errors, to reproduce the information sequence. Since the discrete symbols are not applicable for transmission they need to be translated into the waveform and then sent to the receiver, that's why the channel encoder is followed by the modulator. The received, possibly disturbed signal has to be demodulated into a discrete \textit{received sequence}~\textbf{r}. The channel decoder uses the received sequence to reconstruct the code word and in result, hopefully error-free, \textit{estimated~sequence~\textbf{\^{u}}}; which in the perfect scenario is equal to the information sequence, produced by the source encoder. The very last stage is to transform the information sequence into the destination input, which should by absolutely equal to the source output~\cite{book:LinCostello}.\\
+
+\section{Redundancy} \label{sec:red}
+There are many arts of redundancy 
+The additional information added by the encoder is called the \textit{redundancy} and it's a necessary element for error detection which can further lead to error correction. There are two main approaches to error correction.\\[\baselineskip]
+\textbf{Error Correction Through Retransmission} is based on an assumption, that after the detection of an error, there is enough time to retransmit the code word. The redundancy results in the additional control bits for error detection and in the additional time for retransmission. The codes used in this approach are called Error Detecting Codes (EDC)\\[\baselineskip]
+\textbf{Forward Error Correction} enables localization of the error position in the code word and as a result, reconstruction of the original code word and information sequence, without the need of the code word retransmission. The only redundancy are the control bits. The codes used in this approach are called Error Correcting Codes (ECC)~\cite{book:SchonfeldKlimant}.\\
+
+\subsection{Code Redundancy}\label{sub:red}
+
+There are two main groups of codes, block codes and convolutional codes. Since the convolutional codes are not used in the ParSec Project, the understanding of their creation and properties is negligible for the sake of this thesis, therefor a redirection to~\cite{book:Lint}(Chapter 11) seems appropriate.
+The block codes
+
 
 %=============================================================
-\section{Model systemu} \label{sec:model}
-
-%\input{model.tex}
-
-\section{G��wny komputer pok�adowy}
-\textit{Autor: Marcin Aftowicz}\\ \\
-
-%\input{cpu.tex}
-
-\section{Rozproszone jednostki pomiarowe}
-\textit{Autor: Jakub Baranowski}\\ \\
-
-%\input{Hub.tex}
-
-\section{Zdalny interfejs u�ytkownika}
-\textit{Autor: Jakub Baranowski}\\ \\
-
-%\input{interface.tex}
-
-\chapter{Badania eksperymentalne} \label{ch:eksperyment}
-\textit{Autorzy: Marcin Aftowicz, Jakub Baranowski}\\ \\
-
-Rozdzia� po�wi�cony jest badaniu dzia�ania systemu. Przedstawiono w nim dow�d na poprawne jego funkcjonowanie oraz na spe�nienie za�o�e� projektowych. Zbadano przebiegi sygna��w i skonfrontowano je z teori�. Por�wnano protoko�y oraz rozwi�zania u�yte w prototypie systemu, z tymi z wersji aktualnej. Pokazano wy�szo�� systemu nad prototypem oraz ograniczenia, kt�re musz� zosta� zlikwidowane w przysz�o�ci.
-%=============================================================
-%\input{exp.tex}
-
-
-
-\chapter{Podsumowanie}
-\textit{Autor: Jakub Baranowski}\\ \\
-%=============================================================
-%\input{Podsumowanie.tex}
-
-
 % All appendices and extra material, if you have any.
 \cleardoublepage
 \appendix%
