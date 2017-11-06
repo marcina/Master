@@ -80,7 +80,17 @@ When using hash functions even a single bit flip leads to totally different resu
 
 %=============================================================
 \chapter{Dependability} \label{ch:dep}
+\section{Taxonomy} \label{sec:tax}
+
 What makes a system dependable and what does dependability actually mean? \\
+
+\begin  {figure}  [H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/DepTax.PNG}
+\caption{Dependability Taxonomy~\cite{art:Avizienis}}
+\label{fig:deptax}
+\end {figure}
+
 The dependable system is a system, which has the ability to deliver it's service with acceptable number and severity of system failures~\cite{art:Avizienis}. It is in other words the quality of the system's service~\cite{art:Laprie}. Above all the dependability is an integrating term that encapsulates following \textbf{attributes}:
 \begin{itemize}
 \item \textbf{availability} - readiness for the delivery of correct service,
@@ -93,17 +103,38 @@ The mentioned above definitions are based on two important terms: system failure
 \begin{itemize}
     \item \textbf{failure} - a state when system delivers service that deviates from the functional specification or the specification describes systems function not adequately; also a transition from a correct state to the described state. Failure happens as a consequence of an error.
     \item \textbf{error} - part of the system state, which may lead to the system failure, but doesn't have to. An error may be latent (after the fault occurrence) or get activated and become effective,
-    \item \textbf{fault} - a primary term, an undesired circumstance affecting the system, being a cause of an error.
+    \item \textbf{fault} - a primary term, an undesired circumstance affecting the system, being a cause of an error~\cite{art:Avizienis}. 
 \end{itemize}
-The hierarchical structure of dependability threats results in the cause and effect relationship called fault propagation. It is illustrated in the {Figure~\ref*{fig:propagation}}. 
-%definition and taxonomy.  Distinguish faults errors and failures. Permanent and transient faults, wireless strongly disturbed medium, radiation, hardware faults. Means of Dependability, Fault tolerance against fault avoidance
+An example seems appropriate to illustrate the differences and relationship between dependability threats. \\
+Let's consider a short-circuit within an integrated circuit and call it a fault. The result of the short, being one of the connections stuck at a boolean value - an error. The error remains latent until it doesn't get activated. In this scenario the activation would be an attempt of a logical switch of this connection to the opposite value, causing a failure of the connection - an obvious deviation from the specified behavior (reproduction of the input signal to the output of the connection). But a failure of one connection doesn't [have to] mean a failure of the whole integrated circuit. The hierarchical structure of dependability threats and a general hierarchical structure of systems results in the cause and effect relationship called error propagation. It is illustrated in the {Figure~\ref*{fig:propagation}}. An error gets internally propagated until it reaches the interface of another systems component. The failure of one component creates an error in the interfaced component. If this error leads to incorrect service of the entire system, then it means the system failure occurred~\cite{art:Avizienis}. \\
 
 \begin  {figure}  [H]
 \centering
-\includegraphics[width=0.65\textwidth]{figures/DepTax.PNG}
-\caption{Dependability Taxonomy~\cite{art:Avizienis}}
-\label{fig:deptax}
+\includegraphics[width=0.65\textwidth]{figures/propagation.png}
+\caption{The chain of dependability~\cite{art:Avizienis}}
+\label{fig:propagation}
 \end {figure}
+
+Knowing what the dependability is and what are the threats it is important to know what available \textbf{means} do developer have to create a dependable system. There are four solutions:
+\begin{itemize}
+    \item \textbf{Fault Avoidance} or \textbf}{prevention} aims mostly for the development phase of a system and relays on design rules and strongly-typed languages. It also records the detected faults and eliminates them through development process modification.
+    \item \textbf{Fault Tolerance}
+    \item \textbf{Error Removal}
+    \item \textbf{Error Forecasting}
+\end{itemize}
+\section{Fault}
+The faults can have different persistence (transient and permanent), dimension (hardware, software), can occur or arise during development or operational phase of a system. The full classification of faults is visible in the {Figure~\ref*{fig:fault}}.
+
+\begin  {figure}  [H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/fault.png}
+\caption{The elementary fault classes~\cite{art:Avizienis}}
+\label{fig:fault}
+\end {figure}
+
+%definition and taxonomy.  Distinguish faults errors and failures. Permanent and transient faults, wireless strongly disturbed medium, radiation, hardware faults. Means of Dependability, Fault tolerance against fault avoidance
+\section{Fault Tolerance}
+
 
 \section{Channel Coding} \label{sec:cod}
 In the year 1948 Shannon published a landmarking paper "Mathematical Theory of Communication" where he showed that, with a certain information encoding, the errors induced by a noisy channel can be reduced to any suitable level~\cite{art:Shannon}. With this article he started the era of coding theory and a race to create better and better codes with simple decoding algorithms~\cite{book:Lint}. He laid the mathematical foundation of reliable communication, which gets improved until this day.\\
