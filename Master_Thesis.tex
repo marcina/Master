@@ -91,15 +91,14 @@ What makes a system dependable and what does dependability actually mean? \\
 \label{fig:deptax}
 \end {figure}
 
-The dependable system is a system, which has the ability to deliver it's service with acceptable number and severity of system failures~\cite{art:Avizienis}. It is in other words the quality of the system's service~\cite{art:Laprie}. Above all the dependability is an integrating term that encapsulates following \textbf{attributes}:
+The dependable system is a system, which has the ability to deliver it's service with acceptable number and severity of system failures~\cite{art:Avizienis}. Dependability ensures then the quality of the system's service~\cite{art:Laprie}. Above all the dependability is an integrating term that encapsulates following \textbf{attributes}:
 \begin{itemize}
-\item \textbf{availability} - readiness for the delivery of correct service,
-\item \textbf{reliability} - permanence in the delivery of correct service,
-\item \textbf{safety} - absence of catastrophic system failures and ability to transit and reside in the fail-safe state,
-\item \textbf{integrity} - impossibility of the system alteration (by unauthorised subjects),
-\item \textbf{maintainability} - possibility of the system alteration and repairs (by authorised subjects)~\cite{art:Laprie}\cite{art:Avizienis}.
+\item \textbf{availability} - readiness for the delivery of correct service, can be used as a  measure, being a time function $A(t)$ showing the probability that the system functions correctly at the particular time $t$. 
+\item \textbf{reliability} - permanence in the delivery of correct service, can also be used as a measure, being the time function $R(t)$ showing the probability that the system has functioned correctly in the time interval $[t_0,t]$ under assumption that it has functioned correctly at the time $t_0$.
+\item \textbf{safety} - absence of catastrophic system failures and ability to transit and reside in the fail-safe state, again a measure being a time function $S(t)$ showing probability that a system that worked correctly at time $t_0$ works correctly in the interval $[t_0,t]$ or remains in the fail-safe state,
+\item \textbf{maintainability} - possibility of the system alteration and repairs (by authorized subjects) given as a time function $M(t)$ showing the probability that a faulty system will be repaired within time $t$~\cite{art:Laprie, art:Avizienis}.
 \end{itemize}
-The mentioned above definitions are based on two important terms: system failure and correct service, being in fact antonyms. The absence of one means the presence of the other. A system failure is therefore one of the impairments that threaten the  dependability. There are three \textbf{threats}, that form a hierarchical structure:
+The mentioned above definitions are based on two important terms: system failure and correct service, being in fact antonyms. The absence of one means the presence of the other. A system failure is therefore one of the impairments that threaten the dependability. There are three \textbf{threats}, that form a hierarchical structure:
 \begin{itemize}
     \item \textbf{failure} - a state when system delivers service that deviates from the functional specification or the specification describes systems function not adequately; also a transition from a correct state to the described state. Failure happens as a consequence of an error.
     \item \textbf{error} - part of the system state, which may lead to the system failure, but doesn't have to. An error may be latent (after the fault occurrence) or get activated and become effective,
@@ -117,13 +116,21 @@ Let's consider a short-circuit within an integrated circuit and call it a fault.
 
 Knowing what the dependability is and what are the threats it is important to know what available \textbf{means} do developer have to create a dependable system. There are four solutions:
 \begin{itemize}
-    \item \textbf{Fault Avoidance} or \textbf}{prevention} aims mostly for the development phase of a system and relays on design rules and strongly-typed languages. It also records the detected faults and eliminates them through development process modification.
-    \item \textbf{Fault Tolerance}
-    \item \textbf{Error Removal}
-    \item \textbf{Error Forecasting}
+    \item \textbf{Fault Prevention} aims mostly at the development phase of a system and relays on design rules, modularization and strongly-typed languages. It also records the detected faults and eliminates them through development process modification.
+    \item \textbf{Fault Tolerance} stands for methods which imply the presence of faults and their inevitability. Hence the need for error detection and processing. The fault tolerance is elaborated in the {section~\ref*{sec:tolerance}}.
+    \item \textbf{Fault Removal} in the development phase has three stages: verification, diagnosis and correction. If the verification shows faults in the system, the two other steps need to by applied. The verification needs to be repeated afterwards. In the use phase the faults are removed through maintenance, which requires an external agent (a repairman, some test equipment or software).
+    \item \textbf{Fault Forecasting} bases on evaluation process of the system behavior, especially the fault occurrence and activation. The evaluation can be either qualitative - classify and rank events that are dangerous to the system; or quantitative - count and give probabilistic measure of the extent in which the attributes of dependability are satisfied. 
 \end{itemize}
-\section{Fault}
-The faults can have different persistence (transient and permanent), dimension (hardware, software), can occur or arise during development or operational phase of a system. The full classification of faults is visible in the {Figure~\ref*{fig:fault}}.
+While the fault prevention and the fault forecasting are more useful in analysis of the system dependability and aim to minimize the amount and severity of faults in the system, thus helping by the fault avoidance; the fault tolerance and fault removal both assume that the faults happen and provide methods to reduce their impact on the system, creating a group of fault acceptance methods, thus helping by handling with systems that are subject to faults. {Figure~\ref*{fig:depgroup}} represents the grouping of dependability means.
+
+\begin  {figure}  [H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/depgroup.png}
+\caption{Grouping of the means for dependability~\cite{art:Avizienis}}
+\label{fig:depgroup}
+\end {figure}
+\section{Fault taxonomy}
+There are eight categories that help to understand what kinds of faults there are and how they may influence the system. They are called the elementary fault classes. Each fault falls into more classes. They may be understood as properties of a fault. The possible combinations are marked with a dot in the~{Figure~\ref*{fig:fault}}. The developer has to decide witch classes should be included in the dependability specification 
 
 \begin  {figure}  [H]
 \centering
@@ -131,6 +138,16 @@ The faults can have different persistence (transient and permanent), dimension (
 \caption{The elementary fault classes~\cite{art:Avizienis}}
 \label{fig:fault}
 \end {figure}
+
+The classes divide into three main groups: the development faults, the physical faults and the interaction faults. The development faults occur during the development phase of the system, they partially overlap with the physical faults, which are all the faults that affect the hardware. The last group describes faults that happen during the use phase and come from the use environment of the system, hence they are operational faults.\\
+Very important perspective splits faults up into two, or actually three groups, based on the duration of the fault and its persistence:
+\begin{itemize}
+    \item The \textbf{transient faults} occur once and don't persist afterwards. The error caused by such a fault is called a soft error.
+    \item The \textbf{permanent faults}, often called hard faults, occur at some point in time and last until the faulty component gets repaired. Faults occurrence may happen already in the development phase and results in erroneous data being produced by affected component during its use. 
+    \item The \textbf{intermittent faults} occur repeatedly but not continuously in the same spot in the design. The errors caused by such faults tend to also be intermittent~\cite{book:Sorin}.
+\end{itemize}
+The knowledge about the faults persistence is therefore important, that it changes the strategy of fault tolerance. The permanent faults, to be removed, require some sort of repair procedure, while the transient faults require much less complicated treatment, like repetition of the operation.
+
 
 %definition and taxonomy.  Distinguish faults errors and failures. Permanent and transient faults, wireless strongly disturbed medium, radiation, hardware faults. Means of Dependability, Fault tolerance against fault avoidance
 \section{Fault Tolerance}
