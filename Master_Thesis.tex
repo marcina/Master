@@ -14,6 +14,8 @@
 \usepackage{tocbibind}
 \usepackage[all]{nowidow}
 \usepackage{comment}
+\usepackage{caption}
+\usepackage{indentfirst}
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \lstset {
 basicstyle=\small,
@@ -74,12 +76,16 @@ linewidth=\textwidth
 %=============================================================
 \chapter{Introduction and motivation} \label{ch:int}
 
-Wireless signal transmission and data storage are getting more and more exposed to faults. For many years scientists have investigated the problem and suggested 
-The wireless communication system consist of the source encoder and decoder, which get rid of the useless redundancy maximizing the information throughput, followed by cryptographic encoder and decoder, to make the information secret, followed by the channel encoder and decoder for error detection and correction. Then the information is processed by a baseband processor and is sent over radio. 
+Wireless communication is more and more commonly used in highly unfavorable environments, like industrial production facilities. 
+
+In modern systems channel encoders and decoders are implemented as hardware modules for performance gain. They are essential parts of dependable communication systems. Firstly because signal propagation is disturbed by interferences and moving objects, and secondly because of the small transmission latencies required in real-time industrial control systems.
+
 When using hash functions even a single bit flip leads to totally different results.
 
 %=============================================================
 \chapter{Dependability} \label{ch:dep}
+
+%************************************************************************************************************************%
 \section{Taxonomy} \label{sec:tax}
 
 What makes a system dependable and what does dependability actually mean? \\
@@ -96,16 +102,17 @@ The dependable system is a system, which has the ability to deliver it's service
 \item \textbf{availability} - readiness for the delivery of correct service, can be used as a  measure, being a time function $A(t)$ showing the probability that the system functions correctly at the particular time $t$. 
 \item \textbf{reliability} - permanence in the delivery of correct service, can also be used as a measure, being the time function $R(t)$ showing the probability that the system has functioned correctly in the time interval $[t_0,t]$ under assumption that it has functioned correctly at the time $t_0$.
 \item \textbf{safety} - absence of catastrophic system failures and ability to transit and reside in the fail-safe state, again a measure being a time function $S(t)$ showing probability that a system that worked correctly at time $t_0$ works correctly in the interval $[t_0,t]$ or remains in the fail-safe state,
-\item \textbf{maintainability} - possibility of the system alteration and repairs (by authorized subjects) given as a time function $M(t)$ showing the probability that a faulty system will be repaired within time $t$~\cite{art:Laprie, art:Avizienis}.
+\item \textbf{maintainability} - possibility of the system alteration and repairs (by authorized subjects) given as a time function $M(t)$ showing the probability that a faulty system will be repaired within time $t$~\cite{art:Laprie, art:Avizienis, art:Avizienis2}.
 \end{itemize}
 The mentioned above definitions are based on two important terms: system failure and correct service, being in fact antonyms. The absence of one means the presence of the other. A system failure is therefore one of the impairments that threaten the dependability. There are three \textbf{threats}, that form a hierarchical structure:
 \begin{itemize}
     \item \textbf{failure} - a state when system delivers service that deviates from the functional specification or the specification describes systems function not adequately; also a transition from a correct state to the described state. Failure happens as a consequence of an error.
     \item \textbf{error} - part of the system state, which may lead to the system failure, but doesn't have to. An error may be latent (after the fault occurrence) or get activated and become effective,
-    \item \textbf{fault} - a primary term, an undesired circumstance affecting the system, being a cause of an error~\cite{art:Avizienis}. 
+    \item \textbf{fault} - a primary term, an undesired circumstance affecting the system, being a cause of an error~\cite{art:Avizienis, art:Avizienis2}. 
 \end{itemize}
-An example seems appropriate to illustrate the differences and relationship between dependability threats. \\
-Let's consider a short-circuit within an integrated circuit and call it a fault. The result of the short, being one of the connections stuck at a boolean value - an error. The error remains latent until it doesn't get activated. In this scenario the activation would be an attempt of a logical switch of this connection to the opposite value, causing a failure of the connection - an obvious deviation from the specified behavior (reproduction of the input signal to the output of the connection). But a failure of one connection doesn't [have to] mean a failure of the whole integrated circuit. The hierarchical structure of dependability threats and a general hierarchical structure of systems results in the cause and effect relationship called error propagation. It is illustrated in the {Figure~\ref*{fig:propagation}}. An error gets internally propagated until it reaches the interface of another systems component. The failure of one component creates an error in the interfaced component. If this error leads to incorrect service of the entire system, then it means the system failure occurred~\cite{art:Avizienis}. \\
+An example seems appropriate to illustrate the differences and relationship between dependability threats. 
+
+Let's consider a short-circuit within an integrated circuit and call it a fault. The result of the short, being one of the connections stuck at a boolean value - an error. The error remains latent until it doesn't get activated. In this scenario the activation would be an attempt of a logical switch of this connection to the opposite value, causing a failure of the connection - an obvious deviation from the specified behavior (reproduction of the input signal to the output of the connection). But a failure of one connection doesn't [have to] mean a failure of the whole integrated circuit. The hierarchical structure of dependability threats and a general hierarchical structure of systems results in the cause and effect relationship called error propagation. It is illustrated in the \autoref{fig:propagation}. An error gets internally propagated until it reaches the interface of another systems component. The failure of one component creates an error in the interfaced component. If this error leads to incorrect service of the entire system, then it means the system failure occurred~\cite{art:Avizienis, art:Avizienis2}. \\
 
 \begin  {figure}  [H]
 \centering
@@ -117,11 +124,11 @@ Let's consider a short-circuit within an integrated circuit and call it a fault.
 Knowing what the dependability is and what are the threats it is important to know what available \textbf{means} do developer have to create a dependable system. There are four solutions:
 \begin{itemize}
     \item \textbf{Fault Prevention} aims mostly at the development phase of a system and relays on design rules, modularization and strongly-typed languages. It also records the detected faults and eliminates them through development process modification.
-    \item \textbf{Fault Tolerance} stands for methods which imply the presence of faults and their inevitability. Hence the need for error detection and processing. The fault tolerance is elaborated in the {section~\ref*{sec:tolerance}}.
+    \item \textbf{Fault Tolerance} stands for methods which imply the presence of faults and their inevitability. Hence the need for error detection and processing. The fault tolerance is elaborated in the~\autoref{sec:tolerance}.
     \item \textbf{Fault Removal} in the development phase has three stages: verification, diagnosis and correction. If the verification shows faults in the system, the two other steps need to by applied. The verification needs to be repeated afterwards. In the use phase the faults are removed through maintenance, which requires an external agent (a repairman, some test equipment or software).
-    \item \textbf{Fault Forecasting} bases on evaluation process of the system behavior, especially the fault occurrence and activation. The evaluation can be either qualitative - classify and rank events that are dangerous to the system; or quantitative - count and give probabilistic measure of the extent in which the attributes of dependability are satisfied. 
+    \item \textbf{Fault Forecasting} bases on evaluation process of the system behavior, especially the fault occurrence and activation. The evaluation can be either qualitative - classify and rank events that are dangerous to the system; or quantitative - count and give probabilistic measure of the extent in which the attributes of dependability are satisfied~\cite{art:Avizienis, art:Avizienis2}. 
 \end{itemize}
-While the fault prevention and the fault forecasting are more useful in analysis of the system dependability and aim to minimize the amount and severity of faults in the system, thus helping by the fault avoidance; the fault tolerance and fault removal both assume that the faults happen and provide methods to reduce their impact on the system, creating a group of fault acceptance methods, thus helping by handling with systems that are subject to faults. {Figure~\ref*{fig:depgroup}} represents the grouping of dependability means.
+While the fault prevention and the fault forecasting are more useful in analysis of the system dependability and aim to minimize the amount and severity of faults in the system, thus helping by the fault avoidance; the fault tolerance and fault removal both assume that the faults happen and provide methods to reduce their impact on the system, creating a group of fault acceptance methods, thus helping by handling with systems that are subject to faults. \autoref{fig:depgroup} represents the grouping of dependability means.
 
 \begin  {figure}  [H]
 \centering
@@ -129,8 +136,10 @@ While the fault prevention and the fault forecasting are more useful in analysis
 \caption{Grouping of the means for dependability~\cite{art:Avizienis}}
 \label{fig:depgroup}
 \end {figure}
-\section{Fault taxonomy}
-There are eight categories that help to understand what kinds of faults there are and how they may influence the system. They are called the elementary fault classes. Each fault falls into more classes. They may be understood as properties of a fault. The possible combinations are marked with a dot in the~{Figure~\ref*{fig:fault}}. The developer has to decide witch classes should be included in the dependability specification 
+
+%************************************************************************************************************************%
+\section{Fault pathology}
+There are eight categories that help to understand what kinds of faults there are and how they may influence the system. They are called the elementary fault classes. Each fault falls into more classes. They may be understood as properties of a fault. The possible combinations are marked with a dot in the~\autoref{fig:fault}. The developer has to decide witch classes should be included in the dependability specification.
 
 \begin  {figure}  [H]
 \centering
@@ -139,7 +148,7 @@ There are eight categories that help to understand what kinds of faults there ar
 \label{fig:fault}
 \end {figure}
 
-The classes divide into three main groups: the development faults, the physical faults and the interaction faults. The development faults occur during the development phase of the system, they partially overlap with the physical faults, which are all the faults that affect the hardware. The last group describes faults that happen during the use phase and come from the use environment of the system, hence they are operational faults.\\
+The classes divide into three main groups: the development faults, the physical faults and the interaction faults. The development faults occur during the development phase of the system. The last group describes faults that happen during the use phase and come from the use environment of the system, hence they are operational faults. Physical faults are all faults that happen in hardware, they happen during the development and use phase invariably.
 Very important perspective splits faults up into two, or actually three groups, based on the duration of the fault and its persistence:
 \begin{itemize}
     \item The \textbf{transient faults} occur once and don't persist afterwards. The error caused by such a fault is called a soft error.
@@ -148,36 +157,103 @@ Very important perspective splits faults up into two, or actually three groups, 
 \end{itemize}
 The knowledge about the faults persistence is therefore important, that it changes the strategy of fault tolerance. The permanent faults, to be removed, require some sort of repair procedure, while the transient faults require much less complicated treatment, like repetition of the operation.
 
+Let's focus on faults that occur in hardware and are caused by natural phenomena. Those faults are marked with a box in the~\autoref{fig:fault}. There are three stages within this group:
+\begin{itemize}
+    \item Production defects - are all development faults which are permanent. These can be imperfections and variations in one of the production stages or dust particles causing shorts. They lead to functional and parametric errors and should be caught before the use phase. One of the possibilities is the burn-in test which consists in stressing the circuit with high temperature and voltage, leading to its premature aging. The early life failures are caught and affected circuit doesn't get to it's use phase.
+    \item Physical Interference - are all external faults, both permanent, transient and intermittent caused by radioactive radiation and electromagnetic interference. These faults are randomly distributed throughout the whole life of a the system.
+    \item Physical Deterioration - are the faults resulting from aging. They can be permanent, transient and intermittent. Electromigration (EM) and Stress Migration (SM) are just two of many possible aging effects by which an integrated circuit may be affected. The probability of such faults rises together with the systems age~\cite{art:Avizienis, art:Avizienis2}.
+\end{itemize}
+The~\autoref{fig:badewanne} shows the Fault rate/time relation showing that after eliminating the production faults the system is exposed to constant fault rate of random interferences until its aging process starts to cause more and more faults.
 
-%definition and taxonomy.  Distinguish faults errors and failures. Permanent and transient faults, wireless strongly disturbed medium, radiation, hardware faults. Means of Dependability, Fault tolerance against fault avoidance
+\begin  {figure}  [H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/badewanne.png}
+\caption{Fault rate throughout systems life cycle~\cite{art:Avizienis}}
+\label{fig:badewanne}
+\end {figure}
+
+The amount of different faults and their variety is countless. There are means needed to model the results that those faults have on the system and therefore to simulate different solutions to prevent them. Those results are called failure modes. There is no perfect model that would cover all faults but there are specific failure modes that can be observed and are common to many different faults, like following:
+\begin{itemize}
+    \item Single Event Transient (SET) describes a glitch in combinational logic that travels trough design
+    \item Single Event Upset (SEU) describes the situation when the incorrect voltage level caused by SET gets stored in the memory or the memory state changes. Can affect more memory cells at once.
+    \item Single Event Latchup (SEL) - a highly loaded particle makes a locked transistor conduct leading to short in CMOS logic. Requires a power reset and may lead to a hard fault, because of a very high temperature~\cite{report:altera}.
+\end{itemize}
+The abstraction of faults and categorization into failure modes allows to develop test methods to simulate this particular effect. All mentioned models represent failure modes in digital hardware logic. Some operations take less time or energy when moved from digital domain to analog one~\cite{Prof Vierhaus Lectures}. In modern communication systems there is a rapid growth in analog and mixed circuitry that is also vulnerable to faults. The number of such faults is again countless and some failure mode representation is needed. The continuous characteristic of analog systems allows only for two failure modes:
+\begin{itemize}
+    \item Catastrophic failures - the system is not functional at all
+    \item Unacceptable performance - the service is still provided but some of the functionality lies outside of the acceptable range of the specification
+\end{itemize}
+The distinction between them lies only in the definition of catastrophic failure. On higher abstraction levels the catastrophic fault may only be considered as a parametric one~\cite{book:Kabisatpathy}, following the rule of fault propagation mentioned in~\autoref{fig:propagation}.
+%************************************************************************************************************************%
 \section{Fault Tolerance}
+The fault tolerance is one of the dependability means. The developer cannot only rely on fault avoidance methods because of the time needed for manual repair and frequency of those repairs. Sometimes the system is also inaccessible for maintenance. Additionally the more complex is the hardware, the more liable it is to natural faults. Thus while designing the hardware which is either very complex or doesn't allow long times to repair then the incorporation of fault tolerance is a must.\\
+Fault tolerant systems can react differently in the presence of faults. Some provide the full performance, some offer just a reduced functional capability~\cite{art:Randell}. There are therefore different schemes of fault tolerance and they depend on the faults that are supposed to be tolerated. There are however two main parts that have to always exist: error detection and system recovery.\\
+The error detection can either be concurrent to main functionality or happen during scheduled pauses, when normal functionality is suspended. After the error is detected the recovery routine has to deal with two problems. The first one is the error handling which can be performed via:
+\begin{itemize}
+    \item backward error recovery - executed on demand. The system is brought back to a saved state that is known to be error-free. This state has to be saved prior to error occurrence, thus its name is checkpoint.
+    \item forward error recovery - also executed on demand. Finding a new state, which has not yet bee occupied by the system, which is error-free.
+    \item error compensation - can by used either systematically (also in absence of faults) or on demand. The erroneous state contains enough redundancy to provide correct service despite the fault. The systematic usage is called the fault masking.
+\end{itemize} 
+The other problem is to remove the cause of an error, therefore the fault handling may be necessary. It consists of:
+\begin{itemize}
+    \item Diagnosis - identifies and stores the cause of an error and its location together with the time when the error happened.
+    \item Isolation - excludes the faulty component from normal function either logically or physically 
+    \item Reconfiguration - provides a spare component to take place of the faulty one or reassigns the tasks among non faulty components
+    \item Reinitialization - logs the changes made in configuration and updates the records or system tables 
+\end{itemize}
+The coverage of fault tolerance is a measure of its successful detection of erroneous states associated with faults and its ability to repair or replace such states. Every method covers different faults and errors, therefore only a combination of them can lead to a maximum fault coverage.
+Fault tolerance requires protective redundancy, being additional components and algorithms allowing the error detection and preventing errors from leading to failures. Unfortunately the fault tolerance is a recursive procedure, witch means that every redundancy, when implemented, becomes part of the system, and therefore can be affected by all previously described faults.
+There are four main arts of redundancy: time redundancy, hardware redundancy, software redundancy and information redundancy. The software redundancy will not be discussed.
+%************************************************************************************************************************%
+\subsection{Hardware Redundancy} \label{ssec:HWred}
+The main overhead lies in hardware. The components are either passive or active. 
+
+The passive redundancy aims for immediate masking of a failure. As long as the number of faults doesn't exceed the specified maximum, the system provides correct functionality without showing any kinds of disturbance. It's achieved through a parallel execution of operations on more concurrent components in hope that faults appear independently in each one of them. An example of such art of redundancy is the N-Modular Redundancy system, which has N modules running in parallel and majority voter that propagates the result that occurred in the majority of the modules. A variation of such system would incorporate more voters running in parallel to eliminate the single-point-of-failure, which is the voter in an NMR system. Passive redundancy is an example of error compensation without any sort of fault handling and systematic error detection, which happens inside of the voter. The permanent faults are masked as long as their accumulation with transient faults doesn't exceed the coverage of the system.
+
+The active redundancy is a way to solve the permanent fault problem which occurs in passive redundancy. After error detection, the erroneous component is localized and replaced by a fault-free spare component. The start procedure of such a component can take some time, that could be avoided if the component had worked in parallel to the rest of the system by the time of error occurrence. Such strategy is cold a Hot-Standby (in opposite to Cold-Standby) but it leads to component deterioration, without it being actually used for the main functionality. The active redundancy is an example of rollforward approach, since the configuration after repair is a state that has not been used before the error occurrence. The error detection can be either systematical or happen in intervals, depending on the requirements.
+
+There is a possibility to combine both approaches to a hybrid one. Having a systematical error compensation with an active spare modules. Once a permanent fault is detected a reconfiguration takes place, either on-line or during a break.
+
+\subsection{Information redundancy}\label{ssec:Infred}
+The information flow through a system can be corrupted by many different faults. Other proposed methods try to not let to the information integrity violation. But maybe even if the information got changed, then there is a possibility to detect this change and reconstruct the original information. The information redundancy tries to achieve exactly this goal by adding some bits to the information being transfered or stored. It can be achieved either by duplicating the information itself or by adding special parity bits to detect or even correct the errors. Special codes make it possible to achieve this goal.
+\textbf{Forward Error Correction} (FEC) enables localization of the error position within the information and as a result, reconstruction of the original information, without the need of retransmission. The only redundancy are the control bits and the encoder (Hardware or Software). The codes used in this approach are called Error Correcting Codes (ECC)~\cite{book:SchonfeldKlimant}. The mechanism and creation of such codes is discussed in~\autoref{sec:codered}. The information redundancy can be classified as error masking technique.\\
+
+%************************************************************************************************************************%
+\subsection{Time redundancy}
+The last type of redundancy has a very powerful advantage over it's predecessors, namely it doesn't require so much additional hardware. The time redundancy is mostly implemented in software, that executes operations more times in a row achieving the same result as the hardware redundancy without its cost. With 2 repetitions the errors can be detected and three repetitions allow error correction. The repetitions can be achieved through a checkpoint system. The repetitions may also happen concurrently on different threads leading to use different processor resources for the same task and creating a quasi NMR system. For transmission errors the \textbf{Error Correction Through Retransmission} is possible. It's based on an assumption, that after the detection of an error, there is enough time to retransmit the information. The redundancy results in the additional control bits for error detection (information redundancy) and in the additional time for retransmission.
 
 
+%************************************************************************************************************************%
 \section{Channel Coding} \label{sec:cod}
 In the year 1948 Shannon published a landmarking paper "Mathematical Theory of Communication" where he showed that, with a certain information encoding, the errors induced by a noisy channel can be reduced to any suitable level~\cite{art:Shannon}. With this article he started the era of coding theory and a race to create better and better codes with simple decoding algorithms~\cite{book:Lint}. He laid the mathematical foundation of reliable communication, which gets improved until this day.\\
 
-\begin  {figure}  [H]
+%=============================================================
+\section{Block Codes}\label{sub:codered}
+A dependable information transfer or storage can be achieved using Error Correcting Codes (ECC).
+There are two main groups of codes: block codes and convolutional codes. Since the convolutional codes are not used in the ParSec Project, the understanding of their creation and properties is negligible for the sake of this thesis, therefore a redirection to~\cite{book:Lint}(Chapter 11) seems appropriate.
+The block codes
+\chapter{Test}
+\section{}
+
+\chapter{Experiment}
+\section{System description}
+
+\autoref{fig:data_path} represents a typical communication system. Although the figure is over 40 years such model is still very up-to-date.
+\begin  {figure} [htb]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/Data_transmission_path.png}
 \caption{Block diagram of a typical data transmission (storage) system~\cite{book:LinCostello}}
 \label{fig:data_path}
 \end {figure}
 
-\noindent\hyperref[fig:data_path]{Figure~\ref*{fig:data_path}} represents a typical information transmission system. Firstly the source encoder transforms the source output into a sequence of bits, called \textit{information sequence} \textbf{u}, trying to minimize the number of bits needed to represent the source output. The source output should be easily reproduced by the source decoder without ambiguity. The purpose of the channel encoder is to transform the information sequence into a discrete sequence \textbf{v} called the \textit{code~word}. The code word should allow the channel decoder, despite possible errors, to reproduce the information sequence. Since the discrete symbols are not applicable for transmission they need to be translated into the waveform and then sent to the receiver, that's why the channel encoder is followed by the modulator. The received, possibly disturbed signal has to be demodulated into a discrete \textit{received sequence}~\textbf{r}. The channel decoder uses the received sequence to reconstruct the code word and in result, hopefully error-free, \textit{estimated~sequence~\textbf{\^{u}}}; which in the perfect scenario is equal to the information sequence, produced by the source encoder. The very last stage is to transform the information sequence into the destination input, which should by absolutely equal to the source output~\cite{book:LinCostello}.\\
+The purpose of the channel encoder is to transform the \textit{information sequence} \textbf{u}, produced by digital source, into a \textit{code~word} \textbf{v}. It adds useful information redundancy, which despite possible transmission errors, allows the channel decoder to reproduce the information sequence. Since the discrete symbols are not applicable for transmission they need to be translated into the waveform and then sent to the receiver, that's why the channel encoder is followed by the modulator. The received, possibly disturbed signal has to be demodulated into a discrete \textit{received sequence}~\textbf{r}. The channel decoder uses the received sequence to reconstruct the code word and in result, hopefully error-free, \textit{estimated~sequence~\textbf{\^{u}}}; which in the perfect scenario is equal to the information sequence, produced by the digital source~\cite{book:LinCostello}.
 
-\section{Redundancy} \label{sec:red}
-There are many arts of redundancy 
-The additional information added by the encoder is called the \textit{redundancy} and it's a necessary element for error detection which can further lead to error correction. There are two main approaches to error correction.\\[\baselineskip]
-\textbf{Error Correction Through Retransmission} is based on an assumption, that after the detection of an error, there is enough time to retransmit the code word. The redundancy results in the additional control bits for error detection and in the additional time for retransmission. The codes used in this approach are called Error Detecting Codes (EDC)\\[\baselineskip]
-\textbf{Forward Error Correction} enables localization of the error position in the code word and as a result, reconstruction of the original code word and information sequence, without the need of the code word retransmission. The only redundancy are the control bits. The codes used in this approach are called Error Correcting Codes (ECC)~\cite{book:SchonfeldKlimant}.\\
-
-\subsection{Code Redundancy}\label{sub:red}
-
-There are two main groups of codes, block codes and convolutional codes. Since the convolutional codes are not used in the ParSec Project, the understanding of their creation and properties is negligible for the sake of this thesis, therefor a redirection to~\cite{book:Lint}(Chapter 11) seems appropriate.
-The block codes
-
-
-%=============================================================
+The fault tolerance provided by channel encoder and decoder provides not only error detection and error compensation of the errors caused by disturbed channel but also of all errors in hardware modules that lay in between. \autoref{fig:data_path} shows an abstraction of the transmission path, being in fact much more complex. The digital source of information can be understood as a MAC Layer or it may also consist of some hardware/software components:
+\begin{itemize}
+    \item source encoder - compresses the data by removing useless redundancy, leaving just the information that needs to be transmitted. Like with any compression, the significance of every bit in an information sequence has greater impact on the information content after the compression than it had before it
+    \item cryptography encoder - helps to protect the confidentiality and integrity of data being sent, meaning that it cannot be read or altered by unauthorized third parties. Cryptography by itself doesn't guarantee anything, it is a part of security engineering. More information can be found in~\cite{Cryptography}. In many cases, one of the encryption stages involves using a hash function which counteracts the manipulation of encrypted bitstream. Channing one bit within hashed bitstream leads to decryption of a completely different clear text. Hence FEC is crucial.
+\end{itemize}
+Channel encoder and modulator are nowadays parts of the baseband processors, together with frame formatters, DC/AC converters, symbol shaping modules and RF modules. The baseband processors are in fact a mixture of digital and analog components. Very complex and very hard to test.
 % All appendices and extra material, if you have any.
 \cleardoublepage
 \appendix%
