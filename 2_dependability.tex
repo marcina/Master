@@ -7,12 +7,12 @@
 
 What makes a system dependable and what does dependability actually mean? \\
 
-\begin  {figure}  [H]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/DepTax.PNG}
 \caption{Dependability Taxonomy~\cite{art:Avizienis}}
 \label{fig:deptax}
-\end {figure}
+\end{figure}
 
 The dependable system is a system, which has the ability to deliver it's service with acceptable number and severity of system failures~\cite{art:Avizienis}. Dependability ensures then the quality of the system's service~\cite{art:Laprie}. Above all the dependability is an integrating term that encapsulates following \textbf{attributes}:
 \begin{itemize}
@@ -31,12 +31,12 @@ An example seems appropriate to illustrate the differences and relationship betw
 
 Let's consider a short-circuit within an integrated circuit and call it a fault. The result of the short, being one of the connections stuck at a boolean value - an error. The error remains latent until it doesn't get activated. In this scenario the activation would be an attempt of a logical switch of this connection to the opposite value, causing a failure of the connection - an obvious deviation from the specified behavior (reproduction of the input signal to the output of the connection). But a failure of one connection doesn't [have to] mean a failure of the whole integrated circuit. The hierarchical structure of dependability threats and a general hierarchical structure of systems results in the cause and effect relationship called error propagation. It is illustrated in the \autoref{fig:propagation}. An error gets internally propagated until it reaches the interface of another systems component. The failure of one component creates an error in the interfaced component. If this error leads to incorrect service of the entire system, then it means the system failure occurred~\cite{art:Avizienis, art:Avizienis2}. \\
 
-\begin  {figure}  [H]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/propagation.png}
 \caption{The chain of dependability~\cite{art:Avizienis}}
 \label{fig:propagation}
-\end {figure}
+\end{figure}
 
 Knowing what the dependability is and what are the threats it is important to know what available \textbf{means} do developer have to create a dependable system. There are four solutions:
 \begin{itemize}
@@ -47,23 +47,23 @@ Knowing what the dependability is and what are the threats it is important to kn
 \end{itemize}
 While the fault prevention and the fault forecasting are more useful in analysis of the system dependability and aim to minimize the amount and severity of faults in the system, thus helping by the fault avoidance; the fault tolerance and fault removal both assume that the faults happen and provide methods to reduce their impact on the system, creating a group of fault acceptance methods, thus helping by handling with systems that are subject to faults. \autoref{fig:depgroup} represents the grouping of dependability means.
 
-\begin  {figure}  [H]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/depgroup.png}
 \caption{Grouping of the means for dependability~\cite{art:Avizienis}}
 \label{fig:depgroup}
-\end {figure}
+\end{figure}
 
 %************************************************************************************************************************%
-\section{Fault pathology}
+\section{Fault Pathology}
 There are eight categories that help to understand what kinds of faults there are and how they may influence the system. They are called the elementary fault classes. Each fault falls into more classes. They may be understood as properties of a fault. The possible combinations are marked with a dot in the~\autoref{fig:fault}. The developer has to decide witch classes should be included in the dependability specification.
 
-\begin  {figure}  [H]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/fault.png}
 \caption{The elementary fault classes~\cite{art:Avizienis}}
 \label{fig:fault}
-\end {figure}
+\end{figure}
 
 The classes divide into three main groups: the development faults, the physical faults and the interaction faults. The development faults occur during the development phase of the system. The last group describes faults that happen during the use phase and come from the use environment of the system, hence they are operational faults. Physical faults are all faults that happen in hardware, they happen during the development and use phase invariably.
 Very important perspective splits faults up into two, or actually three groups, based on the duration of the fault and its persistence:
@@ -82,12 +82,12 @@ Let's focus on faults that occur in hardware and are caused by natural phenomena
 \end{itemize}
 The~\autoref{fig:badewanne} shows the Fault rate/time relation showing that after eliminating the production faults the system is exposed to constant fault rate of random interferences until its aging process starts to cause more and more faults.
 
-\begin  {figure}  [H]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/badewanne.png}
 \caption{Fault rate throughout systems life cycle~\cite{art:Avizienis}}
 \label{fig:badewanne}
-\end {figure}
+\end{figure}
 
 
 %************************************************************************************************************************%
@@ -120,12 +120,12 @@ The active redundancy is a way to solve the permanent fault problem which occurs
 
 There is a possibility to combine both approaches to a hybrid one. Having a systematical error compensation with an active spare modules. Once a permanent fault is detected a reconfiguration takes place, either on-line or during a break.
 
-\subsection{Information redundancy}\label{ssec:Infred}
+\subsection{Information Redundancy}\label{ssec:Infred}
 The information flow through a system can be corrupted by many different faults. Other proposed methods try to not let to the information integrity violation. But maybe even if the information got changed, then there is a possibility to detect this change and reconstruct the original information. The information redundancy tries to achieve exactly this goal by adding some bits to the information being transfered or stored. It can be achieved either by duplicating the information itself or by adding special parity bits to detect or even correct the errors. Special codes make it possible to achieve this goal.
 \textbf{Forward Error Correction} (FEC) enables localization of the error position within the information and as a result, reconstruction of the original information, without the need of retransmission. The only redundancy are the control bits and the encoder (Hardware or Software). The codes used in this approach are called Error Correcting Codes (ECC)~\cite{book:SchonfeldKlimant}. The mechanism and creation of such codes is discussed in~\autoref{sec:codered}. The information redundancy can be classified as error masking technique.\\
 
 %************************************************************************************************************************%
-\subsection{Time redundancy}
+\subsection{Time Redundancy}
 The last type of redundancy has a very powerful advantage over it's predecessors, namely it doesn't require so much additional hardware. The time redundancy is mostly implemented in software, that executes operations more times in a row achieving the same result as the hardware redundancy without its cost. With 2 repetitions the errors can be detected and three repetitions allow error correction. The repetitions can be achieved through a checkpoint system. The repetitions may also happen concurrently on different threads leading to use different processor resources for the same task and creating a quasi NMR system. For transmission errors the \textbf{Error Correction Through Retransmission} is possible. It's based on an assumption, that after the detection of an error, there is enough time to retransmit the information. The redundancy results in the additional control bits for error detection (information redundancy) and in the additional time for retransmission.
 
 

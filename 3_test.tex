@@ -1,5 +1,13 @@
 \chapter{Test}
-Development of any electronic system involves many different stages which finally lead to manufacturing process and later on to the use phase of such a system. At every stage of its life cycle the system has to be tested for presence of faults. This process doesn't have to end with a post-manufacturing test. As shown in previous chapter, the faults accompany the system from the very first ideas of its developers until its final power down.
+Development of any electronic system involves many different stages which finally lead to manufacturing process and later on to the use phase of such a system. At every stage of its life cycle the system has to be tested for presence of faults. This process doesn't have to end with a post-manufacturing test. As shown in the previous chapter, the faults accompany the system from the very first ideas of its developers until its final power down. The \autoref{fig:design} shows the following design stages with accompanying tests.
+
+\begin  {figure}  [H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/badewanne.png}
+\caption{Fault rate throughout systems life cycle~\cite{art:Avizienis}}
+\label{fig:badewanne}
+\end {figure}
+
 \section{Fault models}
 
 The amount of different faults and their variety is countless. There are means needed to model how those faults affect the system. The fault effects are called failure modes. There is no perfect model that would cover all faults but there are specific failure modes that can be observed and are common to many different faults, like following:
@@ -13,7 +21,8 @@ The abstraction of faults and categorization into failure modes allows to develo
     \item Catastrophic failures - the system is not functional at all
     \item Unacceptable performance - the service is still provided but some of the functionality lies outside of the acceptable range of the specification
 \end{itemize}
-The distinction between them lies only in the definition of catastrophic failure. On higher abstraction levels the catastrophic fault may only be considered as a parametric one~\cite{book:Kabisatpathy}, following the rule of fault propagation mentioned in~\autoref{fig:propagation}.
+The distinction between them lies only in the definition of catastrophic failure and definition range of the system. On higher abstraction levels the catastrophic fault may only be considered as a parametric one~\cite{book:Kabisatpathy}, following the rule of fault propagation mentioned in~\autoref{fig:propagation}.
 
 %diagnostic test
 %online offline testing
+% DFT, scan path, boundry scna, BIST
