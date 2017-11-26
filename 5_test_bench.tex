@@ -34,5 +34,39 @@ The Xilinx Zynq XC7Z020-1-CLG484 produced in 28nm technology is a SoC solution c
 \end{figure}
 
 \section{Physical Interface}
+The physical interface of the test bench has to supply UUT inputs with test vectors and record response of the outputs. This is the principle of the boundary test, where the tester has no access to the internal structure of the tested design. The system architecture is shown in \autoref{fig:testbench}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/TestBench.png}
+\caption{The Architecture of the Test Bench~\cite{book:ZynqBook}}
+\label{fig:testbench}
+\end{figure}
+
+\subsection{AXI Interface}
+The history of the Advanced eXtensible Interface (AXI) goes back to year 2003 when it was first introduced as part of the ARM\textsuperscript{\textregistered} Advanced Microcontroller Bus Architecture (AMBA\textsuperscript{\textregistered}). The current version is called AXI4 and was released in 2010 as second version of AXI interface. The number four comes from the fourth version of AMBA, which contains AXI interface. The protocol is supported by many Intellectual Property (IP) producers (not only Xilinx) making the designer learn only one standard of communication. It was developed to standardize the communication between modules in the SoC designs. There are three types or modes of the AXI4:
+\begin{itemize}
+    \item AXI4 maps the memory of the interface and allows bursts up to 256 data transfers with just single address phase. Writing data to the memory, sends the data directly to the IP,
+    \item AXI4-Lite is a light-weight version which offers just memory mapping without the burst capability,
+    \item AXI4-Stream doesn't support any address phases. It allows unlimited burst of data. Lack of addresses make it no more considered a memory mapping interface.
+\end{itemize}
+The protocol works in the master slave system connecting both of them using an AXI Interconnect IP. It applies only to memory mapped versions, since the AXI4-Stream connects master and slave directly or with each other or DMA IP. The AXI Interconnect can service up to 16 masters and 16 slaves. Its main function is the data-width translation, downsizing too big master data packets into smaller slave-compliant bursts or upsizing it. It also does the clock-rate conversion, since both masters and slaves can operate on different clock frequencies. One of the big advantages of the interconnection is the mix support between protocol modes. Moreover the interconnection implements data pipelining for better frequency vs. latency trade-off. Finally it handles priorities in data transitions, making them either concurrent or using programmable priorities.
+AXI4 protocol is designed for bidirectional communication, having separate write address, read address, write data, read data and write response channels in memory mapped modes and just data transfer channel in Stream mode. Every Xilinx IP has AXI4 support and there is an easy way of creating custom IPs supporting this protocol~\cite{report:AXI}.
+
+\subsection{Test Engine}\label{ssec:engine}
+
+
+\subsection{Data buffering}
+Since the test has to be conducted with working frequency of the design, the data fed to the test bench has to be buffered. For the buffering the internal Block RAMs have been used, since they have dual port access, they fit perfectly for the scenario. The dual port capability of a memory implementation means concurrent access to the memory bank from two independent sources. They can be even clocked with two different clocks if necessary. The conflicts, when accessing the IP over AXI4, are handled by the interconnect which schedules the write and read access after each other. In the true dual port configuration, whitout AXI4 protocol, the conflict management can be configured, but conflicts are advised to be avoided~\cite{report:BRAM}.
+
+The BRAMs in the test bench are configured to be true dual ports. One port connected to AXI Bus and another port to the Test Engine. Conflicts may never occur because of the state machine implemented. The memory is never accessed by PL and PS simultaneously. The state machine is shown in the \autoref{fig:PSschedule}. There are two instances of the BRAMs, one to supply the stimuli to the Test Engine, another to store responses. The input BRAM is filled with data. Then the ENA signal starts the test procedure, resulting in: valid responses stored in output BRAM and RDY signal, to indicate the end of the test procedure. The lack of simultaneous accesses from PL and PS allows the use of only one BRAM, connecting one port as the input to the Test Engine and another port as its output. After the test routine ends, it would be possible to switch the connection of one of the ports back to the AXI interface. This solution is more area efficient, but the presence of two BRAMS was determined by a possible extra feature of conducting successive runs with the same stimuli or chaining the output BRAM to be the input of another Test Engine. 
+
+The depth and width of the BRAMs may be adjusted to suit the testers needs and optimize BRAMs function. They have to be kept equal for both BRAMS at all times. The width of the memory is a very important parameter for frequency multiplication. The $clk_{bram}$ is different then the $clk_{uut}$ and their relation $k$ is strongly connected with the width of BRAM word and the width of the UUT interface.
+\begin{equation}
+k = \frac{clk_{uut}}{clk_{bram}} = \frac{width_{bram}}{width_{uut}}
+\end{equation}
+For example if the $width_{uut} = 64b$ and the desired test frequency set to $clk_{uut} = 300MHz$ and the BRAM configured to have only $width_{bram} = 8b$ then it would have to be clocked with the frequency $clk_{bram} = 2,4GHz$ to satisfy data throughput. This value exceeds the maximum $clk_{bram_{max}} = 400MHz$. The detailed explanation of the origin of this relation can be found in \autoref{ssec:engine}.
+
+
 \section{Middleware}
 \section{GUI}
