@@ -54,18 +54,38 @@ The protocol works in the master slave system connecting both of them using an A
 AXI4 protocol is designed for bidirectional communication, having separate write address, read address, write data, read data and write response channels in memory mapped modes and just data transfer channel in Stream mode. Every Xilinx IP has AXI4 support and there is an easy way of creating custom IPs supporting this protocol~\cite{report:AXI}.
 
 \subsection{Test Engine}\label{ssec:engine}
+The main core of the Test Bench is the Test Engine which feeds the test vectors to the UUT and gathers the response vectors. It consist of two parts:
+\begin{itemize}
+    \item memory interface which calculates successive addresses for words in the memory bank and stores them in the input register for one $clk_{bram}$ cycle. The addresses get incremented by $inc = width_{bram}/8$ due to the bytewise addressing scheme. The memory interface also handles the write back of the response once per $clk_{bram}$ cycle from the output register. The number of pipeline stages for data read operation has to be taken into account. The number of pipeline stages determines the delay in clock cycles when the information, stored under the address given in the address register, actually gets to the input register of the test engine. The detailed timing is showed in \autoref{fig:timing}.
+    \item data converter which reads input register and conducts parallel to parallel conversion where the input dimension is the $width_{bram}$ and the output dimension is the $width_{uut}$. The conversion process takes $k clk_{uut}$ cycles where $k$ is calculated as showed in~\autoref{eq:ratio}.
+    \begin{equation}\label{eq:ratio}
+    k = \frac{clk_{uut}}{clk_{bram}} = \frac{width_{bram}}{width_{uut}}
+    \end{equation}
+    The Test Engine successively shifts the chunks of data through the design. With each $clk_{uut}$ cycle it gathers the response and recombines the original structure with another parallel to parallel conversion, this time having the opposite dimension ratio. The test vector and response vector have always the same width, although the number of UUT inputs and outputs may vary. It is necessary to connect the unused ports of data demultiplexer to a known constant value.
+\end{itemize}
+The multiplexing can be built using MUXes that choose which part of the input register should be routed to the UUT input or eith shift register with parallel input.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/MUX.png}
+\caption{MUX}
+\label{fig:mux}
+\end{figure}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/Shift.png}
+\caption{Shift register}
+\label{fig:shift}
+\end{figure}
+%---!!!! see how it is implemented and repair!!!!!---%%%
+The UUT is surrounded by flip-flops to guaranty, that the tested design is separated from the test engine logic.
 \subsection{Data buffering}
-Since the test has to be conducted with working frequency of the design, the data fed to the test bench has to be buffered. For the buffering the internal Block RAMs have been used, since they have dual port access, they fit perfectly for the scenario. The dual port capability of a memory implementation means concurrent access to the memory bank from two independent sources. They can be even clocked with two different clocks if necessary. The conflicts, when accessing the IP over AXI4, are handled by the interconnect which schedules the write and read access after each other. In the true dual port configuration, whitout AXI4 protocol, the conflict management can be configured, but conflicts are advised to be avoided~\cite{report:BRAM}.
+Since the test has to be conducted with working frequency of the design, the data fed to the test bench has to be buffered. Working with the native AXI frequency of 200 MHz and providing the clock signal as one of the data bits would result in the maximum test frequency being 100Mhz. Buffering limits the amount of data processed during one test run. After all data have been processed, the execution stops and doesn't restart until new data has been written to the memory. For the buffering, the internal Block RAMs have been used. Since they have dual port access, they fit perfectly for the scenario. The dual port capability of a memory implementation means concurrent access to the memory bank from two independent sources. They can be even clocked with two different clocks if necessary. The conflicts, when accessing the IP over AXI4, are handled by the interconnect which schedules the write and read access after each other. In the true dual port configuration, whithout the AXI4 protocol, the conflict management can be configured, but conflicts are advised to be avoided~\cite{report:BRAM}.
 
-The BRAMs in the test bench are configured to be true dual ports. One port connected to AXI Bus and another port to the Test Engine. Conflicts may never occur because of the state machine implemented. The memory is never accessed by PL and PS simultaneously. The state machine is shown in the \autoref{fig:PSschedule}. There are two instances of the BRAMs, one to supply the stimuli to the Test Engine, another to store responses. The input BRAM is filled with data. Then the ENA signal starts the test procedure, resulting in: valid responses stored in output BRAM and RDY signal, to indicate the end of the test procedure. The lack of simultaneous accesses from PL and PS allows the use of only one BRAM, connecting one port as the input to the Test Engine and another port as its output. After the test routine ends, it would be possible to switch the connection of one of the ports back to the AXI interface. This solution is more area efficient, but the presence of two BRAMS was determined by a possible extra feature of conducting successive runs with the same stimuli or chaining the output BRAM to be the input of another Test Engine. 
+The BRAMs in the test bench are configured to be true dual ports. One port connected to AXI Bus and another port to the Test Engine. Conflicts must never occur because of the state machine implemented. The memory is never accessed by PL and PS simultaneously. The state machine is shown in the \autoref{fig:PSschedule}. There are two instances of the BRAMs, one to supply the stimuli to the Test Engine, another to store responses. The input BRAM is filled with data. Then the ENA signal starts the test procedure, resulting in: valid responses stored in output BRAM and RDY signal, to indicate the end of the test procedure. The lack of simultaneous accesses from PL and PS allows the use of only one BRAM, connecting one port as the input to the Test Engine and another port as its output. After the test routine ends, it would be possible to switch the connection of one of the ports back to the AXI interface. This solution is more area efficient, but the presence of two BRAMS was determined by a possible extra feature of conducting successive runs with the same stimuli or chaining the output BRAM to be the input of another Test Engine. 
 
-The depth and width of the BRAMs may be adjusted to suit the testers needs and optimize BRAMs function. They have to be kept equal for both BRAMS at all times. The width of the memory is a very important parameter for frequency multiplication. The $clk_{bram}$ is different then the $clk_{uut}$ and their relation $k$ is strongly connected with the width of BRAM word and the width of the UUT interface.
-\begin{equation}
-k = \frac{clk_{uut}}{clk_{bram}} = \frac{width_{bram}}{width_{uut}}
-\end{equation}
-For example if the $width_{uut} = 64b$ and the desired test frequency set to $clk_{uut} = 300MHz$ and the BRAM configured to have only $width_{bram} = 8b$ then it would have to be clocked with the frequency $clk_{bram} = 2,4GHz$ to satisfy data throughput. This value exceeds the maximum $clk_{bram_{max}} = 400MHz$. The detailed explanation of the origin of this relation can be found in \autoref{ssec:engine}.
+The depth and width of the BRAMs may be adjusted to suit the testers needs and optimize BRAMs function. They have to be kept equal for both BRAMs at all times. The width of the memory is a very important parameter for frequency multiplication. The $clk_{bram}$ is different then the $clk_{uut}$ and their relation $k$ is strongly connected with the width of BRAM word and the width of the UUT interface showed in~\autoref{eq:ratio}. For example if the $width_{uut} = 8b$ and the desired test frequency set to $clk_{uut} = 300MHz$ and the BRAM configured to have $width_{bram} = 16b$ then it would have to be clocked with the frequency $clk_{bram} = 150MHz$ to satisfy data throughput. It usually makes sense to set the $width_{bram} > width_{uut}$ to access frequncies higher then $clk_{bram_{max}} = 400 MHz$. The detailed explanation of the origin of this relation can be found in \autoref{ssec:engine}.
 
 
 \section{Middleware}
