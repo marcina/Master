@@ -57,24 +57,26 @@ AXI4 protocol is designed for bidirectional communication, having separate write
 The main core of the Test Bench is the Test Engine which feeds the test vectors to the UUT and gathers the response vectors. It consist of two parts:
 \begin{itemize}
     \item memory interface which calculates successive addresses for words in the memory bank and stores them in the input register for one $clk_{bram}$ cycle. The addresses get incremented by $inc = width_{bram}/8$ due to the bytewise addressing scheme. The memory interface also handles the write back of the response once per $clk_{bram}$ cycle from the output register. The number of pipeline stages for data read operation has to be taken into account. The number of pipeline stages determines the delay in clock cycles when the information, stored under the address given in the address register, actually gets to the input register of the test engine. The detailed timing is showed in \autoref{fig:timing}.
-    \item data converter which reads input register and conducts parallel to parallel conversion where the input dimension is the $width_{bram}$ and the output dimension is the $width_{uut}$. The conversion process takes $k clk_{uut}$ cycles where $k$ is calculated as showed in~\autoref{eq:ratio}.
+    \item data downsize converter which reads input register and conducts parallel to parallel conversion where the input dimension is the $b=width_{bram}$ and the output dimension is the $u=width_{uut}$. The conversion process takes $k clk_{uut}$ cycles where $k$ is calculated as showed in~\autoref{eq:ratio}.
     \begin{equation}\label{eq:ratio}
     k = \frac{clk_{uut}}{clk_{bram}} = \frac{width_{bram}}{width_{uut}}
     \end{equation}
-    The Test Engine successively shifts the chunks of data through the design. With each $clk_{uut}$ cycle it gathers the response and recombines the original structure with another parallel to parallel conversion, this time having the opposite dimension ratio. The test vector and response vector have always the same width, although the number of UUT inputs and outputs may vary. It is necessary to connect the unused ports of data demultiplexer to a known constant value.
+    The Test Engine successively shifts the $u$ size chunks of data through the design. With each $clk_{uut}$ cycle new data is placed on the input of UUT and new response gathered. The upsize converter recombines the $u$ size responses into $b$ size word with another parallel to parallel conversion. The test vector and response vector have always the same width $u$, although the number of UUT inputs and outputs may vary. It is necessary to connect the unused ports of the Test Engine to a known constant value.
 \end{itemize}
-The multiplexing can be built using MUXes that choose which part of the input register should be routed to the UUT input or eith shift register with parallel input.
+The downsize conversion can be accomplished using a big multiplexer, which $b$ number of inputs and $u$ number of outputs. The multiplexing can be also achieved with 8 k-to-1 MUXes, which is how the synthesis tool in Vivado handles this problem. The multiplexer solution is show in \autoref{fig:mux}.
 
-\begin{figure}[H]
+Another way of conducting a donwsize conversion is by splitting it to many parallel to serial conversions. Such conversions are done using shift registers with parallel inputs but serial outputs.
+
+\begin{figure}[h]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/MUX.png}
 \caption{MUX}
 \label{fig:mux}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{figures/Shift.png}
+\includegraphics[width=0.65\textwidth]{figures/Shift_2.png}
 \caption{Shift register}
 \label{fig:shift}
 \end{figure}
