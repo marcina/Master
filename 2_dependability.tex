@@ -80,7 +80,7 @@ Let's focus on faults that occur in hardware and are caused by natural phenomena
     \item Physical Interference - are all external faults, both permanent, transient and intermittent caused by radioactive radiation and electromagnetic interference. These faults are randomly distributed throughout the whole life of a the system.
     \item Physical Deterioration - are the faults resulting from aging. They can be permanent, transient and intermittent. Electromigration (EM) and Stress Migration (SM) are just two of many possible aging effects by which an integrated circuit may be affected. The probability of such faults rises together with the systems age~\cite{art:Avizienis, art:Avizienis2}.
 \end{itemize}
-The~\autoref{fig:badewanne} shows the Fault rate/time relation showing that after eliminating the production faults the system is exposed to constant fault rate of random interferences until its aging process starts to cause more and more faults.
+The~\autoref{fig:badewanne} shows the Fault rate/time relation. The first part of the diagram shows Early-Life_Failures, which result from the Production Defects. They should be captured during early life tests of the design. Next stage shows all faults happening due to Physical Interference. They are constantly threatening the system keeping the fault rate at the stable level. It may happen that systems environment is less or more "fault likely" but it would just shift the fault rate higher and not change the monotonicity of this part of the graph. The last part show rising number of faults due to agied and deterioration processes happening to every hardware (and, according to some definitions also to software).
 
 \begin{figure}[H]
 \centering
