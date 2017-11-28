@@ -1,7 +1,7 @@
 \documentclass[]{myclass}
 \usepackage[cp1250]{inputenc}
 \usepackage[OT4]{fontenc}
-\usepackage{hyperref}
+
 \usepackage[table,xcdraw]{xcolor}
 \usepackage{multirow}
 \usepackage{subfig}
@@ -16,6 +16,9 @@
 \usepackage{comment}
 \usepackage{caption}
 \usepackage{indentfirst}
+\usepackage{amsmath} %subeq
+\usepackage{mathtools} %split eq
+
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \lstset {
 basicstyle=\small,
@@ -31,7 +34,12 @@ linewidth=\textwidth
 \title{Hardware Test and fault diagnosis based on extended FEC functions  in wireless communication systems}
 \mysupervisor{Prof. Dr.-Ing. H. T. Vierhaus \and Ing. Petr Pfeifer, MSc, MBA, Ph.D.}
 \myyear{2018}
-
+\usepackage{hyperref}
+\hypersetup{
+    linkcolor={blue!70!black},
+    citecolor={blue!70!black},
+    urlcolor={blue!70!black}
+}
 \begin{document}
 \selectlanguage{english}
 \bibliographystyle{plplain}
@@ -50,11 +58,6 @@ linewidth=\textwidth
 \listoffigures  \cleardoublepage
 \listoftables   \cleardoublepage
 
-\hypersetup{
-    linkcolor={blue!70!black},
-    citecolor={blue!70!black},
-    urlcolor={blue!70!black}
-}
 \tableofcontents \cleardoublepage
 
 % Main matter **************************************

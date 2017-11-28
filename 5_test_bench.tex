@@ -54,40 +54,76 @@ The protocol works in the master slave system connecting both of them using an A
 AXI4 protocol is designed for bidirectional communication, having separate write address, read address, write data, read data and write response channels in memory mapped modes and just data transfer channel in Stream mode. Every Xilinx IP has AXI4 support and there is an easy way of creating custom IPs supporting this protocol~\cite{report:AXI}.
 
 \subsection{Test Engine}\label{ssec:engine}
-The main core of the Test Bench is the Test Engine which feeds the test vectors to the UUT and gathers the response vectors. It consist of two parts:
+The main core of the Test Bench is the Test Engine which feeds the test vectors to the UUT and gathers the response vectors. It consists of two parts:
 \begin{itemize}
-    \item memory interface which calculates successive addresses for words in the memory bank and stores them in the input register for one $clk_{bram}$ cycle. The addresses get incremented by $inc = width_{bram}/8$ due to the bytewise addressing scheme. The memory interface also handles the write back of the response once per $clk_{bram}$ cycle from the output register. The number of pipeline stages for data read operation has to be taken into account. The number of pipeline stages determines the delay in clock cycles when the information, stored under the address given in the address register, actually gets to the input register of the test engine. The detailed timing is showed in \autoref{fig:timing}.
-    \item data downsize converter which reads input register and conducts parallel to parallel conversion where the input dimension is the $b=width_{bram}$ and the output dimension is the $u=width_{uut}$. The conversion process takes $k clk_{uut}$ cycles where $k$ is calculated as showed in~\autoref{eq:ratio}.
-    \begin{equation}\label{eq:ratio}
-    k = \frac{clk_{uut}}{clk_{bram}} = \frac{width_{bram}}{width_{uut}}
+    \item memory interface which calculates successive addresses for words in the memory bank and stores them in the input register for one $clk_{bram}$ cycle. The addresses get incremented by $inc = width_{bram}/8$ due to the bytewise addressing scheme. The memory interface also handles the write back of the response once per $clk_{bram}$ cycle from the output register. The number of pipeline stages for data read operation has to be taken into account. The number of pipeline stages determines the delay in clock cycles when the information, stored under the address given in the address register, actually gets to the input register of the test engine.
+    \item data downsize converter which reads input register and conducts parallel to parallel conversion where the input dimension is the $b=width_{bram}$ and the output dimension is the $u=width_{uut}$. The conversion process takes $k clk_{uut}$ cycles where $k$ is calculated as showed in~\autoref*{eq:ratio}.
+    \begin{equation}
+    k = \frac{clk_{uut}}{clk_{bram}} = \frac{width_{bram}}{width_{uut}}\label{eq:ratio}
     \end{equation}
-    The Test Engine successively shifts the $u$ size chunks of data through the design. With each $clk_{uut}$ cycle new data is placed on the input of UUT and new response gathered. The upsize converter recombines the $u$ size responses into $b$ size word with another parallel to parallel conversion. The test vector and response vector have always the same width $u$, although the number of UUT inputs and outputs may vary. It is necessary to connect the unused ports of the Test Engine to a known constant value.
+    The Test Engine (\autoref{fig:testeng}) successively shifts the $u$ size chunks of data through the design. With each $clk_{uut}$ cycle new data is placed on the input of UUT and new response gathered. The UUT is surrounded by flip-flops to guaranty, that the tested design is separated from the test engine logic.
+    \item the upsize converter recombines the $u$ size responses into $b$ size word with another parallel to parallel conversion. The conversion is done by the shift register with parallel output. The functionality of shift registers is described together with the downsize conversion The test vector and response vector have always the same width $u$, although the number of UUT inputs and outputs may vary. It is necessary to connect the unused ports of the Test Engine to a known constant value.
 \end{itemize}
-The downsize conversion can be accomplished using a big multiplexer, which $b$ number of inputs and $u$ number of outputs. The multiplexing can be also achieved with 8 k-to-1 MUXes, which is how the synthesis tool in Vivado handles this problem. The multiplexer solution is show in \autoref{fig:mux}.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/Test_Engine_complex.png}
+\caption{Test engine architecture}
+\label{fig:testeng}
+\end{figure}
 
-Another way of conducting a donwsize conversion is by splitting it to many parallel to serial conversions. Such conversions are done using shift registers with parallel inputs but serial outputs.
+One of the ways to convert wide parallel inputs into series of narrower outputs can be accomplished using MUXes. With each tact the converter chooses different part of the longer word to be routed to the output. The solution is shown in \autoref{fig:mux}. Number of MUXes is always equal to the number of outputs of the converter, with each MUX having as many inputs as the relation $k$. Therefore the solution can be achieved using $u$ $k$-to-1 MUXes. 
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/MUX.png}
-\caption{MUX}
+\caption{32-to-8 bit converter using 8 4-to-1 MUXes}
 \label{fig:mux}
 \end{figure}
+
+Another way of conducting a downsize conversion is by splitting it to many parallel to serial conversions. Such conversion can be achieved using shift registers with parallel input and serial output. Shift register consists of more chained registers, so that the output of the previous register is connected to the input of the next one. With each clock cycle the content of each register is copied to the following one. If the last register is connected to the first one, a circular shift is created. The difference between serial and parallel input shift register lays in the way of feeding it with data. In the serial shift register the input is connected to the first register and travels through all of the registers until it gets propagated to the last one. In the parallel input shift register all of the registers are written at once and shifted out one by one. The number of following registers is called the $depth$ of the shift register. With each cycle new vector occurs at the output until all vectors are processed. Then the shift register is loaded with all bits at once and the shifting starts over. The parallel input of shift register requires multiplexing to indicate whether the shift or write operation is going to happen. The shift registers can also have parallel output, meaning that all registers are read at once. The number of 2-to-1 MUXes needed for parallel input shift register is equal to, the depth of the shift register minus one, multiplied by its width. In the proposed solution there is a need of $(b-u)$ 2-to-1 MUXes and extra $k-1$ number of registers to create the shift register. The advantage of this solution are small MUXes with smaller delays, but the hardware overhead is significant. The shift register solution is shown in \autoref{fig:shift}.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/Shift_2.png}
-\caption{Shift register}
+\caption{32-to-8 bit converter using parallel input shift register and 24 2-to-1 MUXes}
 \label{fig:shift}
 \end{figure}
-%---!!!! see how it is implemented and repair!!!!!---%%%
-The UUT is surrounded by flip-flops to guaranty, that the tested design is separated from the test engine logic.
+
+To provide the desired conversion each method involves different number of MUXes, therefore different complexity and delay. Assuming that every multi-input MUX can be broken into cascade of 2-to-1 MUXes, the comparison between the two methods is possible. The breaking method is shown in \autoref{fig:cascade}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.25\textwidth]{figures/cascade.png}
+\caption{Breaking of 8-to-1 MUX into several 2-to-1 MUXes}
+\label{fig:cascade}
+\end{figure}
+
+Let's consider an $i$-to-1 MUX. Looking from the right-hand side of the \autoref{fig:cascade} the first cascade has always only one MUX. The next one has 2, and the next one 4. There are always twice as many MUXes in the next step as there were in the previous one. These values are terms of the geometric progression with common ratio $q=2$. The number of 2-to-1 MUXes needed to split an $i$-to-1 MUX into cascades is the sum $S_n$ of all $n$ terms of the progression starting with $a_1=1$ and ending with $a_n=\frac{i}{2}$. The \autoref*{eq:nth} can be used to calculate the number of terms and the \autoref*{eq:sum} the sum of the progression. After rearranging the terms in \autoref*{eq:nth} for $n$ and substituting it with given values, the \autoref*{eq:nthres} shows the number of terms in the progression and therefore the number of cascades of MUXes.
+\begin{subequations}
+\begin{align}
+    a_n&=a_1\cdot q^{n-1}\label{eq:nth}\\
+    \frac{a_n}{a_1} &=  q^{n-1}\\
+    n &= \log_q \frac{a_n}{a_1}+1\\
+    n &= \log_2 i\label{eq:nthres}
+\end{align}
+\end{subequations}
+Using the \autoref*{eq:sum} the sum of the progression and therefore the sum of all MUXes is calculated in \autoref*{eq:sumres}.
+\begin{subequations}
+\begin{align}
+    S_n&=a_1\cdot\frac{1-q^{n}}{1-q}\label{eq:sum}\\
+    S_n&=\frac{1-2^{\log_2 i}}{1-2}\\
+    S_n&=i-1\label{eq:sumres}
+\end{align}
+\end{subequations}
+
+To compare both converting solutions, the one with multi-input MUXes has to be broken into cascades of 2-to-1 MUXes. There were $u$ $k$-to-1 MUXes needed in the first solution. Using the \autoref*{eq:sumres} the number of 2-to-1 MUXes needed for this solution is $u(k-1)$. The second solution required $(b-u)$ MUXes, which can be calculated using \autoref*{eq:ratio} as $(uk-u)=u(k-1)$. The number of 2-to-1 MUXes in both solutions is the same, therefore the solution without shift registers is better, because of smaller hardware overhead and will be used in the test bench.
+
 \subsection{Data buffering}
 Since the test has to be conducted with working frequency of the design, the data fed to the test bench has to be buffered. Working with the native AXI frequency of 200 MHz and providing the clock signal as one of the data bits would result in the maximum test frequency being 100Mhz. Buffering limits the amount of data processed during one test run. After all data have been processed, the execution stops and doesn't restart until new data has been written to the memory. For the buffering, the internal Block RAMs have been used. Since they have dual port access, they fit perfectly for the scenario. The dual port capability of a memory implementation means concurrent access to the memory bank from two independent sources. They can be even clocked with two different clocks if necessary. The conflicts, when accessing the IP over AXI4, are handled by the interconnect which schedules the write and read access after each other. In the true dual port configuration, whithout the AXI4 protocol, the conflict management can be configured, but conflicts are advised to be avoided~\cite{report:BRAM}.
 
 The BRAMs in the test bench are configured to be true dual ports. One port connected to AXI Bus and another port to the Test Engine. Conflicts must never occur because of the state machine implemented. The memory is never accessed by PL and PS simultaneously. The state machine is shown in the \autoref{fig:PSschedule}. There are two instances of the BRAMs, one to supply the stimuli to the Test Engine, another to store responses. The input BRAM is filled with data. Then the ENA signal starts the test procedure, resulting in: valid responses stored in output BRAM and RDY signal, to indicate the end of the test procedure. The lack of simultaneous accesses from PL and PS allows the use of only one BRAM, connecting one port as the input to the Test Engine and another port as its output. After the test routine ends, it would be possible to switch the connection of one of the ports back to the AXI interface. This solution is more area efficient, but the presence of two BRAMS was determined by a possible extra feature of conducting successive runs with the same stimuli or chaining the output BRAM to be the input of another Test Engine. 
 
-The depth and width of the BRAMs may be adjusted to suit the testers needs and optimize BRAMs function. They have to be kept equal for both BRAMs at all times. The width of the memory is a very important parameter for frequency multiplication. The $clk_{bram}$ is different then the $clk_{uut}$ and their relation $k$ is strongly connected with the width of BRAM word and the width of the UUT interface showed in~\autoref{eq:ratio}. For example if the $width_{uut} = 8b$ and the desired test frequency set to $clk_{uut} = 300MHz$ and the BRAM configured to have $width_{bram} = 16b$ then it would have to be clocked with the frequency $clk_{bram} = 150MHz$ to satisfy data throughput. It usually makes sense to set the $width_{bram} > width_{uut}$ to access frequncies higher then $clk_{bram_{max}} = 400 MHz$. The detailed explanation of the origin of this relation can be found in \autoref{ssec:engine}.
+The depth and width of the BRAMs may be adjusted to suit the testers needs and optimize BRAMs function. They have to be kept equal for both BRAMs at all times. The width of the memory is a very important parameter for frequency multiplication. The $clk_{bram}$ is different then the $clk_{uut}$ and their relation $k$ is strongly connected with the width of BRAM word and the width of the UUT interface showed in~\autoref*{eq:ratio}. For example if the $width_{uut} = 8b$ and the desired test frequency set to $clk_{uut} = 300MHz$ and the BRAM configured to have $width_{bram} = 16b$ then it would have to be clocked with the frequency $clk_{bram} = 150MHz$ to satisfy data throughput. It usually makes sense to set the $width_{bram} > width_{uut}$ to access frequncies higher then $clk_{bram_{max}} = 400 MHz$. The detailed explanation of the origin of this relation can be found in \autoref{ssec:engine}.
 
 
 \section{Middleware}
