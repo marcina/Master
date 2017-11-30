@@ -18,7 +18,7 @@ The digital source of information can be understood as a MAC layer, followed by:
     \item channel encoder - transforms the \textit{information sequence} \textbf{u}, produced by digital source (MAC layer, source encoder or cryptography encoder), into a \textit{code~word} \textbf{v}. It adds useful information redundancy, which despite possible transmission errors, allows the channel decoder to reproduce the information sequence. The simplest example is a parity bit added at the end of a message indicating an odd or even number of ones in the message. More complicated approaches are described in \autoref{sec:coding}.
     \item modulator - since the discrete symbols are not applicable for transmission they need to be translated into the waveform and then sent to the receiver, that's why the channel encoder is followed by the modulator~\cite{book:LinCostello}.
 \end{itemize}
-All modules come in pairs that are complementary to each other. The demodulators task is to recreate the possible codeword \textbf{v} from the waveform received from the RF module. The channel decoder takes the code word and recreates the information sequence \textbf{u\^}, then the information gets decrypted by cryptography decoder and decoded by source decoder.
+All modules come in pairs that are complementary to each other. The demodulators task is to recreate the possible codeword \textbf{v} from the waveform received from the RF module. The channel decoder takes the code word and recreates the information sequence \textbf{u\^}, then the information gets decrypted by cryptography decoder and decompressed by source decoder.
 
 
 
@@ -28,3 +28,5 @@ Modulators are nowadays parts of the baseband processors, together with frame fo
 Hardware faults can happen in the digital logic in the signal path or an error caused by a transient fault in some memory cells storing parity bits. They are all detected and corrected according to the channel coding algorithm. The same applies to permanent faults in hardware, except that they permanently lower the amount of possible transmission errors that can be detected and corrected. The faults also happen in mixed signal modules and analog parts in signal path and they get also corrected 
 If there was a possibility to exclude the noisy channel from the communication path, then all detected errors would have to have they origin within the hardware modules, indicating the presence of permanent faults. Such test could happed periodically or during the systems start up.
 To implement such solution the transmitter would have to be directly connected with the receiver. Since communication modules are usually designed for both: transmitting and receiving, and all of their components come in complementary pairs, it would be possible to connect the outputs of transmitter modules to corresponding inputs of receivers modules. The idea of such "functional shorts" is shown in \autoref{fig:shorts}.
+
+\section{}

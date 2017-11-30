@@ -11,7 +11,7 @@ The primary test purpose is to reveal the presence of faults. The main idea behi
 
 \section{Fault models}
 
-While it is possible to prove the presence of faults in the design, there is no method proving their absence. The amount of different faults and their variety is countless, hence there are means needed to model how those faults affect the system. The fault itself is not visible to the tester itself (except from visual tests) and has to be stimulated to manifest, and in best case, propagete to the UUT outputs. Many different faults can have the same effect, so investigating the effects of faults may bring better results. The fault effects are called failure modes and they have to be modeled in order to conduct tests. Such fault models serve the purpose of altering the data flow, in the similar way, as the real faults would. It allows to develop test vectors to stimulate and propagate the real faults effects. There are two groups of fault models. The ones that describe faults affecting the logical operations and ones describing the defects in parameters. The most common logical fault models are:
+While it is possible to prove the presence of faults in the design, there is no method proving their absence. The amount of different faults and their variety is countless, hence there are means needed to model how those faults affect the system. The fault itself is not visible to the tester itself (except from visual tests) and has to be stimulated to manifest, and in best case, propagate to the UUT outputs. Many different faults can have the same effect, so investigating the effects of faults may bring better results. The fault effects are called failure modes and they have to be modeled in order to conduct tests. Such fault models serve the purpose of altering the data flow, in the similar way, as the real faults would. It allows to develop test vectors to stimulate and propagate the real faults effects. There are two groups of fault models. The ones that describe faults affecting the logical operations and ones describing the defects in parameters. The most common logical fault models are:
 \begin{itemize}
     \item Stuck-At-Fault consists in an assumption that node in the design has a permanent value and doesn't respond to the logical transitions forced on it. The node can Stuck-at-0 (SA0) or Stuck-at-1 (SA1)
     \item Bridging fault assumes that two nodes interact with each other unintentionally producing either a Wired-AND effect with 0-dominant connection or Wired-OR effect being 1 dominant.
@@ -21,7 +21,7 @@ While it is possible to prove the presence of faults in the design, there is no 
     \item Single Event Upset (SEU) describes the situation when the incorrect voltage level caused by SET gets stored in the memory or the memory state changes. Can affect more memory cells at once.
     \item Single Event Latchup (SEL) - a highly loaded particle makes a locked transistor conduct leading to short in CMOS logic. Requires a power reset and may lead to a hard fault, because of a very high temperature~\cite{report:altera}.
 \end{itemize}
-The logical faults The parametric faults are modeled through:
+The parametric faults are modeled through:
 \begin{itemize}
     \item Bridging fault assumes resistive unintentional connection between two nodes
     \item Memory fault (non-logical faults considered)
@@ -29,12 +29,28 @@ The logical faults The parametric faults are modeled through:
     \item Stuck-open and stuck-short faults in transistors
     \item $I_DDQ$ Fault - measuring the current by power supply during static operation of the design (while there is no switching activity)
 \end{itemize}
-All mentioned models represent failure modes in digital hardware logic, even the analog or mixed signal tests consider only digital cicuits. Some operations however take less time or energy when moved from digital domain to analog one~\cite{Prof Vierhaus Lectures}. In modern communication systems there is a rapid growth in analog and mixed circuitry that is also vulnerable to faults. The number of such faults is again countless and some failure mode representation is required. The continuous characteristic of analog systems allows only for two failure modes:
+All mentioned models represent failure modes in digital hardware logic, even the analog or mixed signal tests consider only digital circuits. Some operations however take less time or energy when moved from digital domain to analog one~\cite{Prof Vierhaus Lectures}. Additionally every radio related circuit does some, or even majority of operations in analog domain. In modern communication systems there is a rapid growth in analog and mixed circuitry that is also vulnerable to faults. The number of such faults is again countless and some sort of abstraction is required. The continuous characteristic of analog systems allows only for two fault models:
 \begin{itemize}
     \item Catastrophic failures - the system is not functional at all
     \item Unacceptable performance - the service is still provided but some of the functionality lies outside of the acceptable range of the specification
 \end{itemize}
-The distinction between them lies only in the definition of catastrophic failure and definition range of the system. On higher abstraction levels the catastrophic fault may only be considered as a parametric one~\cite{book:Kabisatpathy}, following the rule of fault propagation mentioned in~\autoref{fig:propagation}.
+The border line between those two is obviously very subjective and bases on the definition of system correct functionality.~\cite{book:Kabisatpathy}.
+\section{Test Types}
+Testing can be done in following ways:
+\begin{itemize}
+    \item External testing is when the design is tested by some external circuit from the tested design perspective. The internal testing assumes that all needed components are integrated in the circuit, like in case of the Buil In Self Test described later.
+    \item Online testing doesn't disturb hardwares normal operation, while an offline test requires the system to stop working for the test to be carried out.
+    \item Concurrent testing is online testing that is carried out with normal data sets while normal system function.
+    \item At-speed testing is conducted at normal speed of the design. Such testing is also called C testing in opposite to DC testing, when the frequency is lowered during the test letting all faults propagate to the outputs befer the response is sampled.
+    \item Diagnostic test is carried out to find a cause of a failure
+\end{itemize}
+
+\section{Design For Testability (DfT)}
+If the design are treated as black boxes and the test vectors can only be applied to their inputs and responses sampled only from the outputs, many problems occur. While testing the combinational fan-outs and reconvergences become problems. To stimulate faults laying deep inside the combinational logic structure, the test designer has to come up with such a vector that will force a certain state after passing many logic gates and letting this state propagate to one of the design outputs. Testing sequential logic in this way would be nearly impossible because of the complexity of creating and testing all possible states of such system. Therefore the testability has to be supported by systems designers to allow test access to those parts of the design, that are difficult to test using only inputs and outputs. Incorporating the testability methods in the design work flow is called the Design For Testability and is a standard approach during the development of todays complex electronic systems. The designers have many options in making their designs easier to test, therefore maximizing the test coverage. The means for testability are listed below.
+\subsection{Scan Test}
+\subsection{Buit-In-Self-Test (BIST)}
+\section{Automatic Test Equipment (ATE)}
+\section{Analog Design Test}
 
 
 
