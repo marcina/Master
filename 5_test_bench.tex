@@ -1,10 +1,7 @@
 \chapter{Test Bench}
-One of the development steps is the verification of the design. It is very important to determine whether the requirements of the systems specification are met. There are generally two approaches to validate systems functionality. The formal verification is a mathematical prove of the compatibility between the specification and systems function. The verification through simulation focuses on testing the design and  ...
+The main idea behind the test bench development was to make it configurable and adaptable. The test bench has been developed parallel to the system and therefore has been redesigned to suit the current needs. It became clear that it has to be able to conduct various tests on any design with adjustable frequencies and not be bound to any design or interface in particular. The general idea of testing a design has been shown in \autoref{fig:test}.
 
-\section{General Overview}
-The main idea behind the test bench development was to make it configurable and adaptable. The test bench has been developed parallel to the system and therefore has been redesigned to suit the current needs. It became clear that it has to be a test bench able to conduct various test on designs with various input ranges with various frequencies and not be bound to one design or interface. The general idea of testing a design has been shown in \autoref{fig:test}.
-
-The tester is responsible for test vector generation, feeding the vectors to the inputs of the Device Under Test (DUT), gathering the response and evaluating it. Both generation and evaluation tasks are very design dependent and have to be adjusted after the design is placed in the test bench. The easiest interface from the users perspective is a PC application acting as the GUI. Since the UUT is being developed on the RTL level with hardware description language and the test bench is supposed to test it for real working frequencies, at least as close as possible to real environment, implementation on an FPGA would allow such test. The feeding and gathering has to also be implemented in FPGA as physical test interface. The middleware, responsible for the communication and translation of signals, should support standard communication protocols for data exchange with PC and hardware interface to the FPGA. The rough design draft is shown in the figure \autoref{fig:draft}.\\
+The test bench is responsible for applying the test vectors to the inputs of the UUT and recording the responses. The generation of test patterns, systematic or random, and response evaluation must be repeated for every design tested, therefore this is the responsibility of the test designer. The easiest interface from the users perspective is a PC application acting as the GUI to the test bench. Physical access to the UUT is implemented with hardware description language and, together with the design, implemented into a FPGA. The middleware, responsible for the communication and translation of signals between GUI and physical interface, should support standard communication protocols for data exchange with PC and hardware interface to the FPGA. The rough design draft is shown in the figure \autoref{fig:draft}.\\
  
 
 \begin{figure}[H]
@@ -27,7 +24,7 @@ The Xilinx Zynq XC7Z020-1-CLG484 produced in 28nm technology is a SoC solution c
 \end{figure}
 
 \section{Physical Interface}
-The physical interface of the test bench has to supply UUT inputs with test vectors and record response of the outputs. This is the principle of the boundary test, where the tester has no access to the internal structure of the tested design. To achieve higher frequencies then the memory interface can withstand, the Test Engine fetches more data at once and shifts them in chunks through the design. The system architecture is shown in \autoref{fig:testbench}.
+The physical interface of the test bench has to supply UUT inputs with test vectors and record responses of the outputs. It is advisable to incorporate the DfT techniques to increase controllability and observability of the UUT. The system architecture is shown in \autoref{fig:testbench}.
 
 \begin{figure}[H]
 \centering
@@ -36,20 +33,10 @@ The physical interface of the test bench has to supply UUT inputs with test vect
 \label{fig:testbench}
 \end{figure}
 
-\subsection{AXI Interface}
-The history of the Advanced eXtensible Interface (AXI) goes back to year 2003 when it was first introduced as part of the ARM\textsuperscript{\textregistered} Advanced Microcontroller Bus Architecture (AMBA\textsuperscript{\textregistered}). The current version is called AXI4 and was released in 2010 as second version of AXI interface. The number four comes from the fourth version of AMBA, which contains AXI interface. The protocol is supported by many Intellectual Property (IP) producers (not only Xilinx) making the designer learn only one standard of communication. It was developed to standardize the communication between modules in the SoC designs. There are three types or modes of the AXI4:
-\begin{itemize}
-    \item AXI4 maps the memory of the interface and allows bursts up to 256 data transfers with just single address phase. Writing data to the memory, sends the data directly to the IP,
-    \item AXI4-Lite is a light-weight version which offers just memory mapping without the burst capability,
-    \item AXI4-Stream doesn't support any address phases. It allows unlimited burst of data. Lack of addresses make it no more considered a memory mapping interface.
-\end{itemize}
-The protocol works in the master slave system connecting both of them using an AXI Interconnect IP. It applies only to memory mapped versions, since the AXI4-Stream connects master and slave directly or with each other or DMA IP. The AXI Interconnect can service up to 16 masters and 16 slaves. Its main function is the data-width translation, downsizing too big master data packets into smaller slave-compliant bursts or upsizing it. It also does the clock-rate conversion, since both masters and slaves can operate on different clock frequencies. One of the big advantages of the interconnection is the mix support between protocol modes. Moreover the interconnection implements data pipelining for better frequency vs. latency trade-off. Finally it handles priorities in data transitions, making them either concurrent or using programmable priorities.
-AXI4 protocol is designed for bidirectional communication, having separate write address, read address, write data, read data and write response channels in memory mapped modes and just data transfer channel in Stream mode. Every Xilinx IP has AXI4 support and there is an easy way of creating custom IPs supporting this protocol~\cite{report:AXI}.
-
 \subsection{Test Engine}\label{ssec:engine}
 The main core of the Test Bench is the Test Engine which feeds the test vectors to the UUT and gathers the response vectors. It consists of two parts:
 \begin{itemize}
-    \item memory interface which calculates successive addresses for words in the memory bank and stores them in the input register for one $clk_{bram}$ cycle. The addresses get incremented by $inc = width_{bram}/8$ due to the bytewise addressing scheme. The memory interface also handles the write back of the response once per $clk_{bram}$ cycle from the output register. The number of pipeline stages for data read operation has to be taken into account. The number of pipeline stages determines the delay in clock cycles when the information, stored under the address given in the address register, actually gets to the input register of the test engine.
+    \item memory interface which calculates successive addresses for words in the memory bank and stores them in the input register every $clk_{bram}$ cycle. The addresses get incremented by $inc = width_{bram}/8$ due to the bytewise addressing scheme. The memory interface also handles the write back of the response every $clk_{bram}$ cycle from the output register. The number of pipeline stages for memory data read operation has to be taken into account. The number of pipeline stages determines the delay in clock cycles when the information, stored under the address given in the address register, actually gets to the input register of the test engine. The pipeline is used by Xilinx to increase the clock rate of their BRAM modules.
     \item data downsize converter which reads input register and conducts parallel to parallel conversion where the input dimension is the $b=width_{bram}$ and the output dimension is the $u=width_{uut}$. The conversion process takes $k clk_{uut}$ cycles where $k$ is calculated as showed in~\autoref*{eq:ratio}.
     \begin{equation}
     k = \frac{clk_{uut}}{clk_{bram}} = \frac{width_{bram}}{width_{uut}}\label{eq:ratio}
@@ -123,5 +110,15 @@ The depth and width of the BRAMs may be adjusted to suit the testers needs and o
 On of the crucial tasks of the test bench is the ability to test design with different frequencies. The frequency has to be dynamically adjustable and stable at all times.
 
 \section{Middleware}
-The middleware lays between the user and hardware. All of it's functionality is implemented within one core of the ARM processor available in Zynq. The middleware has direct access only to the modules with AXI interface. The modules are marked yellow in the \autoref{fig:testbench}. 
+The middleware lays between the user and hardware. All of it's functionality is implemented within one core of the ARM processor available in Zynq. The middleware has direct access only to the modules with AXI interface. The modules are marked yellow in the \autoref{fig:testbench}.
+
+\subsection{AXI Interface}
+The history of the Advanced eXtensible Interface (AXI) goes back to year 2003 when it was first introduced as part of the ARM\textsuperscript{\textregistered} Advanced Microcontroller Bus Architecture (AMBA\textsuperscript{\textregistered}). The current version is called AXI4 and was released in 2010 as second version of AXI interface. The number four comes from the fourth version of AMBA, which contains AXI interface. The protocol is supported by many Intellectual Property (IP) producers (not only Xilinx) making the designer learn only one standard of communication. It was developed to standardize the communication between modules in the SoC designs. There are three types or modes of the AXI4:
+\begin{itemize}
+    \item AXI4 maps the memory of the interface and allows bursts up to 256 data transfers with just single address phase. Writing data to the memory, sends the data directly to the IP,
+    \item AXI4-Lite is a light-weight version which offers just memory mapping without the burst capability,
+    \item AXI4-Stream doesn't support any address phases. It allows unlimited burst of data. Lack of addresses make it no more considered a memory mapping interface.
+\end{itemize}
+The protocol works in the master slave system connecting both of them using an AXI Interconnect IP. It applies only to memory mapped versions, since the AXI4-Stream connects master and slave directly or with each other or DMA IP. The AXI Interconnect can service up to 16 masters and 16 slaves. Its main function is the data-width translation, downsizing too big master data packets into smaller slave-compliant bursts or upsizing it. It also does the clock-rate conversion, since both masters and slaves can operate on different clock frequencies. One of the big advantages of the interconnection is the mix support between protocol modes. Moreover the interconnection implements data pipelining for better frequency vs. latency trade-off. Finally it handles priorities in data transitions, making them either concurrent or using programmable priorities.
+AXI4 protocol is designed for bidirectional communication, having separate write address, read address, write data, read data and write response channels in memory mapped modes and just data transfer channel in Stream mode. Every Xilinx IP has AXI4 support and there is an easy way of creating custom IPs supporting this protocol~\cite{report:AXI}.
 \section{GUI}
