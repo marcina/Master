@@ -88,7 +88,7 @@ The UUT is surrounded by flip-flops to guaranty, that the tested design is separ
 
 When all buffered test vectores are processed and thereby all responses stored back, the test engine has to unplug the clock from the design. This procedure is conducted by special enable logic which switches on successive pipeline stages and switches them off together with the last valid input data.
 
-\subsubsection{Data multiplexing}label{subsec:mux}
+\subsubsection{Data multiplexing}\label{subsec:mux}
 Although the design is pipelined, the memory interface has it's limitations and cannot be possible clocked with the working frequency of the UUT. To overcome this limitation, more than one test vector is stored in one memory word. After the word is fetched, the test vectors are successively shifted through the design. One of the ways to convert wide parallel inputs into series of narrower outputs can be accomplished using big multiplexer (MUX), or rather an array of MUXes. With each tact the converter chooses different part of the longer word to be routed to the output. The solution is shown in \autoref{fig:mux}. Number of MUXes in this solution is always equal to the number of outputs of the converter, with each MUX having as many inputs as the relation $k$. Therefore the solution can be achieved using $u$ $k$-to-1 MUXes.
 \begin{figure}[h]
 \centering
