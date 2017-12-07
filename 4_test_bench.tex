@@ -151,9 +151,59 @@ One of the crucial tasks of the test bench is the ability to test the design wit
 \label{fig:gui}
 \end{figure}
 
-\section{Experimental vs. Theoretical parameters}
+\section{Test of Inverter}
 To test the limits of the Test Bench, and therefore be able to estimate the maximal working frequency for tests, a simple array of NOR gates have been used as UUT. The implementation of one gate in the FPGA takes only one LUT and the logic delay is only X us. For more inputs, there are more LUT needed, but there will always be just one LUT between two registers. If the LUT is not placed far away from the Test Bench it is safe to assume, that the longest path lays somewhere in the rest of the Test Bench. The following table shows the maximum frequency values reported by Vivado IDE. All paths leading from and to the configuration unit are ignored, since those values are treated by the Test Bench as constants and change only off-line.
 
 Another table shows the results during the real test after implementation.
 
 It is visible that the reported values are lower than the real ones. This phenomenon has been described in \ref{PetrPfeifer}.
+
+\section{Test of the PENCA}
+To show how the Test Bench can be used during design validation, a test of channel encoder architecture will be conducted.
+
+The theory behind the creation of Error Correction Codes (ECC) has been presented in \autoref{sub:codered}. The detection and correction of single bit errors can be achieved using a simple Hamming code \ref{art:Hamming}. With Hsaio Code or extended Hamming Code the single error correction and double error detection is possible \ref{book:Fujiwara,art:Hsiao}. Unfortunately in such a noisy and harsh environment as industrial production site, there may be faults causing more than one or two bit flips in the data bitstream. For such purposes the multiple-bit correcting codes like Reed-Solomon code \ref{Redd-Solomon} or BCH Code \ref{BCH} are suggested. They typically require much more effort in  encoding and especially in decoding the information. They tend to be slower. There are also other methods to deal with correction of two-bit errors like \ref{Hosp, Varghese}. All these proposals lack a simple one-fits-all solution, that could be used and configured to the needs of the target system and it's environment.
+
+Programmable Encoder Architecture (PENCA) designed by P. Pfeifer and H. T. Vierhaus, firstly introduced in \ref{art:Pfeifer}, is an answer to the strict requirements of the dependable communication systems. The core of the solution consists in the "honeycomb" structure of units. The units can be replaced by neighboring units in case of errors detected in one of them. The internal test can be performed automatically or on demand. After testing the unit, it can be marked as faulty, once the test fails, or be reconnected and continue its function. The control of the system is done through the microcode (secured with parity bits). But above all, the architecture can be configured to serve as different channel encoders, starting with the implementation of the single error correcting codes and ending with the multiple-bit error correcting codes or even cross-parity codes. It is done via generation of polynomials by each unit and sometimes even borrowing resources from neighboring units for more extended polynomial generations. Each unit being able to perform BCH generator polynomial length task up to 42 coefficients (34 BCH codes) or 65 coefficients (50 BCH codes) with borrowed resources.
+
+\subsection{UUT description}
+The Unit Under Test is the internal core of the PENCA. The version is simplified and is not driven by opcodes, but by the 64-bit configuration bit-stream that sets all units to their desired functionality.
+The components of Petr Pfeifer's composition, have been delivered as VHDL source file. The interface of the design is shown in \autoref{fig:PENCA_interface}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.25\textwidth]{figures/PENCA_interface.PNG}
+\caption{Interface of PENCA}
+\label{fig:PENCA_interface}
+\end{figure}
+
+To test the design in hardware it needs to be translated from the behavioral description into a real FPGA structure. The first stage of processing the design, after writing the source code, is the elaboration which translates the VHDL source code into electronic structures, like registers, logic gates, etc. This allows the designer to see if his concept, written as text, is describing the hardware properly.
+The elaboration of the design and study on the source code reveals a repetitive structure of the design. The logic of the first two modules is shown in \autoref{fig:unit}. There are two clocks in the design. One clock is responsible for shifting in the configuration bit-stream, the other clock tacts the internal units, data input and output. Yellow elements are registers, that separate the successive sequential states from each other. They are the only sequential parts of the design. The clouds represent combinational logic, where outputs are logical functions of the inputs. This representation of the logic helps to keep the schematic clear and readable. the only important information are the inputs and outputs of the clouds. The trapezoid stays for multiplexer, forwarding one of the inputs to the output. Multiplexers are also parts of the combinational logic, since they are not driven by any clock and their output is a simple function of their inputs, but the schamatic profits when distinguishing then from the rest of the logic. The figure focuses on the data flow in the design, leaving the clocks aside. However one cannot forget that during each clock cycle, signals are propagated along the arrows and have to reach the registers inputs before the end of the cycle.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/Unit_arch.png}
+\caption{Schematic of two PENCA units}
+\label{fig:unit}
+\end{figure}
+
+\subsection{Structure Analysis}
+Let us start with the configuration path, clocked with \textit{CFG\_CLK}. The configuration register is a shift register. Every Unit has is own configuration register and it can be chosen thanks to the simple addressing of \textit{CFG\_SEL}. After the analysis of the source code and the elaborated design, it is clear what the particular parts of the configuration bit-stream stand for. As visible in the \autoref{fig:unit}, the \textit{CHx\_CFG [57:15]} are parameters of the equation used in calculation of the parity bits for each unit. Each calculation step is stored back into \textit{CHx\_RGD} register. The \textit{CHx\_CFG [63:58]} selects which \textit{CHx\_RGD [i]} register is used for building a new parity bit and which \textit{CHx\_RGD} register will be used to calculate new value of the \textit{CHx\_RGD[i]} register. The \textit{CHx\_CFG [9:0]} is a counter value that indicates when to stop forwarding \textit{DATA\_IN} straight to the \textit{DATA\_OUT} and start building parity bits using \textit{CHx\_RGD[i]} register. The combinational logic used to calculate a new value of the \textit{CHx\_RGD[i]} register takes following inputs: the parameters stored in \textit{CHx\_CFG [57:15]}, the actual value of the \textit{CHx\_RGD[i-1]} and modified value of any other \textit{CHx\_RGD} or even \textit{CH(x+1)\_RGD}. The \textit{CH(x+1)\_RGD} stands for coefficients used in the next unit and only a half of those coefficients can be used in the calculation. The same applies for any unit, that uses all it's own coefficients and half of the coefficients of its successor.
+\subsection{Design elaboration}
+The elaboration process is actually a part of the project synthesis. It is creating a netlist that can be used by the synthesis tool to apply constraints to the design. It also maps the logic into FPGA internally used structures like Look Up Tables or Block Rams, but it doesn't decide here to place them yet. The mapping and netlist allow to conduct the first timing analysis, where the logic delays are known and the transportation delays are estimated. The Vivado IDE requires timing constraints to run the timing analysis. After the analysis, the tool reports back which paths did not fulfill the constraints. The speed of the design is determined by its longest/slowest path. The tool doesn't know yet the exact net delays but it the estimation is usually helpful and lets the designer correct the source code before the design is placed in the actual target FPGA structure. In the case of the PENCA design there are two candidates for the longest possible path even before the synthesis. They are both marked in the \autoref{fig:unit}. The red path is the local feedback in calculation of the \textit{CHx\_RGD} and it is taken, when all coefficients used come from one unit. The blue path shows the situation when the coefficients are "borrowed" from the neighboring unit.
+\subsection{Design Synthesis}
+The synthesis tool shows that the path leading from the \textit{CH12\_RGD} to \textit{CH11\_RGD} is probably the longest path in the design and is estimated to take $5,061 ns$. The value is a sum of the logic delay $1,690 ns$ and the net delay $3,371 ns$. The path is shown in \autoref{fig:path}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/path.png}
+\caption{Longest synthesized path in the PENCA design}
+\label{fig:path}
+\end{figure}
+
+The net delay is a double of the logic delay, which is caused by the fact, that the source register belongs to the 12th unit and the sink register to the 11th unit. The path corresponds to the blue scenario in \autoref{fig:unit}. The result of the synthesis is therefore a maximal possible frequency of the design, which theoretically comes to $197.589 MHz$. The high number of LUTs in the path is a result not only of the simple logical functions, but mostly because of the very big multiplexer, having 65 inputs. The multiplexing task is split into a simple multiplexer and row of LUTs.
+
+\subsection{Design Implementation}
+The last step of the work flow with the design is its implementation into the target architecture. The Look Up Tables and Memories and multiplexers are mapped into real CLBs of the target FPGA. The timing analysis in this step is the most accurate, that can be provided by the manufacturer. The only way to see the real cut-off frequency of the design is while testing it after the implementation. The UUT has to be placed in the FPGA with the Test Bench together in order to conduct the post-implemetation test. The result of the timing analysis 
+
+
+
