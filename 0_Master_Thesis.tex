@@ -19,6 +19,9 @@
 \usepackage{amsmath} %subeq
 \usepackage{mathtools} %split eq
 
+\usepackage{booktabs} % table
+\usepackage{multirow} % table
+
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \lstset {
 basicstyle=\small,
@@ -64,10 +67,12 @@ linewidth=\textwidth
 \mainmatter
  
 %Define necessary functions for diagnostic tests	   
-%Define encoder/decoder extensions	   
+% -Shorts + BIST
+%Define encoder/decoder extensions
+% - BIST and fault statistic
 %Implement extensions on FPGAs	   
 %Develop diagnostic test interface software to control / set optional parameters and record results	   
-%Implement into FPGA an experimental set-up	   
+%Implement into FPGA an experimental set-up
 %Conduct measurements on examples
 
 %das Block-Diagramm zu ParSec zeigen
@@ -75,7 +80,11 @@ linewidth=\textwidth
 %vorstellen, dass man bei einem System wie in ParSec ohne FEC nicht auskommt.
 %Zeigen, dass FEC-Komponenten partiell eigene Fehler korrigieren.
 %zeigen (Petr!) wie man bei den FEC-Komponenten Selbsttest-Funktionen einbauen kann.
-
+% test enc i dec for max freq
+% zobacz czy wszystkie błędy są na pewno naprawiane
+\begin{abstract}
+Wireless communication is more and more commonly used in highly unfavorable environments. Nowadays it's not only cellular communication, but also communication within cities, industrial production facilities and other short distance, real-time applications. Such systems have significant demand on safety whilst being vastly exposed not only to signal interferences, multi-path signal propagation and fading effects but also to transient and permanent faults in hardware. 
+\end{abstract}
 %=============================================================
 \input{"1_introduction.tex"}
 %=============================================================
