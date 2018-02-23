@@ -1,4 +1,8 @@
-\chapter{Test Bench}
+\chapter{Test Bench}\label{ch:Test_Bench}
+In the first stages of the work on the dependable communication system, there was a need for functional testing of encoder and decoder systems designed by Petr Pfeifer. The main purpose was to find the limits of the designs. The later step was to build up a communication path and propose a testing scenario for the system as a whole. Both tasks required a development of a test platform to feed the designs with input data and gather the responses.
+
+The standard approach, in building a test bench. consists in creating a non-synthesizeable HDL description, generating the test patterns and simulating the design, using the development environment. The simulation is very time consuming and not suitable for larger test sets. The creation of synthesizeable test bench is legitimate when one wants to create a universal test environment for many different designs with the ability to provide external test patterns and test the design in the "real" hardware. The test results will still be just approximations, due to logic mapping and routing in the FPGA and very sensitive to changes in synthesis and placement parameters. There is but no other more precise tool to test ones design before the manufacturing process.
+
 The main idea behind the test bench development was to make it configurable and adaptable. The test bench has been developed parallel to the system and therefore has been redesigned to suit the current needs. It became clear that it has to be able to conduct various tests on any design with adjustable frequencies and not be bound to any design or interface in particular. The general idea of testing a design has been shown in \autoref{fig:test}.
 
 The test bench is responsible for applying the test vectors to the inputs of the UUT and recording the responses. The generation of test patterns, systematic or random, and response evaluation must be repeated for every design tested, therefore this is the responsibility of the test designer. The easiest interface from the users perspective is a PC application acting as the GUI to the test bench. Physical access to the UUT is implemented with hardware description language and, together with the design, implemented into a FPGA. The middleware, responsible for the communication and translation of signals between GUI and physical interface, should support standard communication protocols for data exchange with PC and hardware interface to the FPGA. The rough design draft is shown in the figure \autoref{fig:draft}.\\
@@ -14,7 +18,7 @@ The test bench is responsible for applying the test vectors to the inputs of the
 \section {Target Architecture}
 The target architecture chosen is the Xilinx Zynq SoC (system on Chip). The idea of integrating processors, memories, mixed signal components with RF components in one chip has been known for a long time. Such Application Specific Integrated Circuits (ASICs) are designed to reduce size, to target more secure and faster communication between systems, to lower power consumption and increase reliability. The production cost of a single ASIC is also lower. The main problem of such full custom design is lack of flexibility, high, non-recurring development cost and time. Another important drawback is the lack of compatibility with most of standard applications which speed up the development process and, what comes with it, the time to market. Instead of full-custom ASICs, the semi custom SoCs with programmable logic are gaining on importance. Standard processors connected with Field Programmable Arrays (FPGAs), peripherals and communication systems create an All-Pogrammable-System-on-Chip. The Programmable Logic is ideal for implementing high-speed logic and data flow systems, while Processing System supports operating system and standard software routines.The combination allows the developer to apply any system and easily partition it between hardware and software.
 
-The Xilinx Zynq XC7Z020-1-CLG484 produced in 28nm technology is a SoC solution containing an ARM hardware processor with two cores and an FPGA with 53200 LUTs, 106400 DFFs and 560 KB of Block RAM. It supports all common standard communication interfaces: UART, SPI, CAN, I2C, GigE, GPIO and SDIO . It also allows quick data transfers between Pocessing System (PS) and Programmable Logic (PL) thanks to Xilinx AXI Bus. The full overview of the Zynq architecture is shown in \autoref{fig:Zynq}. The platform suits all needs of the hardware and middleware layer of the test bench.
+The Xilinx Zynq XC7Z020-1-CLG484 produced in 28nm technology is a SoC solution containing an ARM hardware processor with two cores and an FPGA in Artix-7 technology with 53200 LUTs, 106400 DFFs and 4.9 Mb of Block RAM. It supports all common standard communication interfaces: UART, SPI, CAN, I2C, GigE, GPIO and SDIO . It also allows quick data transfers between Pocessing System (PS) and Programmable Logic (PL) thanks to Xilinx AXI Bus. The full overview of the Zynq architecture is shown in \autoref{fig:Zynq}. The platform suits all needs of the hardware and middleware layer of the test bench.
 
 \begin{figure}[H]
 \centering
@@ -24,15 +28,34 @@ The Xilinx Zynq XC7Z020-1-CLG484 produced in 28nm technology is a SoC solution c
 \end{figure}
 
 \subsection{FPGA Architecture}
-CLBs, M-Slices, L-Slices, 
-design development work flow:
-elaboration
-synthesis
-implementation
+Field Programmable Arrays owe their name to the unique architecture of Configurable Logic Blocks (CLBs) connected with configurable interconnects and interfaced with configurable IOs. The configuration is stored as a program in the static memory and fed to the board as a serial bit stream. The CLBs in Xilinx 7-Series FPGA consist of two Slices, which are the smallest, repeatable structures. Each Slice includes four 6-input Look-Up-Tables (LUT), which can be configured to perform any logical operation on its inputs. Every 6-input LUT can be also used as two 5-input LUT, with common inputs but different functions, and therefore separate outputs. Every output can be stored in a flip-flop. Eight flip-flops, 4 LUTs, multiplexers and arithmetic carry logic form a Slice. Approximately two-thirds of all Slices are of SLICEL to implement logical operation and one-third - SLICEM for Block RAM and shift register implementation~\cite{report:CLB}.
+
 \section{Middleware}
-The middleware lays between the user and hardware. All of it's functionality is implemented within one core of the ARM processor available in Zynq. The middleware has direct access only to the modules with AXI interface. The modules are marked yellow in the \autoref{fig:testbench}.
+The middleware lays between the user application and the hardware. All of it's functionality is implemented within one core of the ARM processor available in Zynq. The middleware is implemented so that it has direct access only to the hardware modules via AXI interface. The modules are marked yellow in the \autoref{fig:testbench}. The program gathers the information received on UART and stores it in the fifo, from which it gets copied to the BRAM, until its full. Then it starts the test, by setting the ENA signal. The end of the test is indicated by the RDY signal. The program sends the content of the BRAM back to the PC application over UART. The user application can check the status of the middleware at any time, reading the frequency of the test, the status of all buffers and BRAMS.
+
+\subsection{Communication protocol}
+The communication protocol was implemented atop of the UART to control the test bench and feed it with data. The main idea behind the design, was its simplicity and the readability and not the performance. The protocol has evolved together with the application and the current version doesn't use all reserved bits. There is a lot of useless redundancy in the header, but the protocol is compliant with previous versions, which proved to be useful during the design. The PC application is the master and the middleware is the slave.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figures/SerialFrame.png}
+\caption{Frame structure in the communication protocol}
+\label{fig:Frame}
+\end{figure}
+
+The basic frame consists of a header, a body and a footer. The header is always 2 bytes long and it contains the information about the art of the following frame (bits 4:5) and its length (bits 8:12). There are two arts of frames, one to control the information flow, called the message frame and the other one to send the information. The protocol was constructed to support data transfers, that are not byte aligned, and thereby the length field has to be coded. Values $\leq 8$ denote the bit length and $8 <$ the length in bytes minus eight. The maximal frame size is 24 bytes. The footer is a check sum over all bytes of frame, it is one byte long. The information is always sent starting with the lowest byte. The frame structure is visible in~\autoref{fig:Frame}.
+
+The communication starts with SYNC\_REQ awaiting the SYNC\_ACK. Every request is done by the master, who initiates the connection. After successful link creation, the master sends a STAT\_REQ signal to read all parameters from the test bench. The most important one is the BRAM capacity. The FREQ\_SET is sent to set the working frequency for the next test. To check the working frequency the FREQ\_GET is sent and the data is compared with the desired frequency. The response contains two values for two clocks in the test bench. The first clock is the UUT clock, the second one is the BRAM clock. If they lay within acceptance margin, the transmission of test vectors starts. Every 10th frame needs to be acknowledged by the slave with RECV\_ACK signal. If the signal doesn't arrive on time, the transfer is interrupted and the connection is reestablished. When the BRAM is full or all vectors have been sent, the master sends END\_OF\_F signal to terminate the transfer and indicate the start of the test. After the reception of END\_OF\_F the slave sets the ENA signal to start the hardware test procedure. The slave sends the results back without further request from the master side as soon as it receives the RDY flag from the hardware engine. The master checks if the received data is complete and starts the next transfer. There is a time limit for the test, which if exceeded resets the communication. The complete diagram of the communication is presented in the~\autoref{fig:UART}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/UART.png}
+\caption{Diagram of master slave communication}
+\label{fig:UART}
+\end{figure}
 
 \subsection{AXI Interface}
+The communication between the PS and PL proceeds entirely with use of AXI protocol. The PS writes and reads the BRAM contents, sets and gets the test frequencies and the ENA and RDY flags.\\
 The history of the Advanced eXtensible Interface (AXI) goes back to year 2003 when it was first introduced as part of the ARM\textsuperscript{\textregistered} Advanced Microcontroller Bus Architecture (AMBA\textsuperscript{\textregistered}). The current version is called AXI4 and was released in 2010 as second version of AXI interface. The number four comes from the fourth version of AMBA, which contains AXI interface. The protocol is supported by many Intellectual Property (IP) producers (not only Xilinx) making the designer learn only one standard of communication. It was developed to standardize the communication between modules in the SoC designs. There are three types or modes of the AXI4:
 \begin{itemize}
     \item AXI4 maps the memory of the interface and allows bursts up to 256 data transfers with just single address phase. Writing data to the memory, sends the data directly to the IP,
@@ -48,7 +71,7 @@ The physical interface of the test bench has to supply UUT inputs with test vect
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/TestBench.png}
-\caption{The Architecture of the Test Bench~\cite{book:ZynqBook}}
+\caption{The Architecture of the test bench~\cite{book:ZynqBook}}
 \label{fig:testbench}
 \end{figure}
 
@@ -64,10 +87,10 @@ There are two solutions that have been implemented and tested to deliver data to
 \label{fig:ver101}
 \end{figure}
     \item another solution is to buffer the data in the physical layer itself. Buffering limits the amount of data processed during one test run. After all data have been processed, the execution stops and doesn't restart until new data has been written to the memory. For the buffering, the internal Block RAMs have been used. Since they have dual port access, they fit perfectly for the scenario. The dual port capability of a memory implementation means concurrent access to the memory bank from two independent sources. They can be even clocked with two different clocks if necessary.~\cite{report:BRAM}.
-    The BRAMs in the test bench are configured to be true dual ports. One port connected to AXI Bus and another port directly to the UUT. Conflicts must never occur because of the state machine implemented. The memory is never accessed by PL and PS simultaneously. The state machine is shown in the \autoref{fig:PSschedule}. There are two instances of the BRAMs, one to supply the stimuli to the UUT, another to store responses. The input BRAM is filled with data. Then the ENA signal starts the test procedure, resulting in: valid responses stored in output BRAM and RDY signal, to indicate the end of the test procedure. The lack of simultaneous accesses from PL and PS would allow to use only one BRAM, connecting one port as the input to the UUT and another port as its output. After the test routine ends, it is possible to switch the connection of one of the ports back to the AXI interface. This solution is more area efficient, but the presence of two BRAMS was determined by a possible extra feature of conducting successive runs with the same stimuli or chaining the output BRAM to be the input of another Test Engine. Hence the two BRAM solution is implemented.
+    The BRAMs in the test bench are configured to be true dual ports. One port connected to AXI Bus and another port directly to the UUT. Conflicts must never occur because the memory is never accessed by PL and PS simultaneously. There are two instances of the BRAMs, one to supply the stimuli to the UUT, another to store responses. The input BRAM is filled with data. Then the ENA signal starts the test procedure, resulting in: valid responses stored in output BRAM and RDY signal, to indicate the end of the test procedure. The lack of simultaneous accesses from PL and PS would allow to use only one BRAM, connecting one port as the input to the UUT and another port as its output. After the test routine ends, it is possible to switch the connection of one of the ports back to the AXI interface. This solution is more area efficient, but the presence of two BRAMS was determined by a possible extra feature of conducting successive runs with the same stimuli or chaining the output BRAM to be the input of another Test Engine. Hence the two BRAM solution is implemented.
     The drawback of this solution is the maximum frequency of the BRAM, which is 400 MHz. Additionally the clock has to be disabled whenever the data is replaced in the memory.
     \item To overcome the disadvantage of the previous solution, a fully customizable data buffering has been implemented. There are more than one vector stored in one memory word and they get fetched during one memory access. Then the vectors are shifted successively through the UUT. This buffering allows higher frequencies on the UUT side and lower on the memory side. The system was presented in the \autoref{fig:testbench}.
-    The depth and width of the BRAMs may be adjusted to suit the testers needs and optimize BRAMs function. They have to be kept equal for both BRAMs at all times because the response vectors have the same length as the test vectors and there are exactly as many vectors stored in one memory word at the input and output. The width of the memory is a very important parameter for frequency multiplication. The $clk_{bram}$ is different then the $clk_{uut}$ and their relation $k$ is strongly connected with the width of BRAM word and the width of the UUT interface showed in~\autoref*{eq:ratio}. 
+    The depth and width of the BRAMs may be adjusted to suit the testers needs and optimize BRAMs function. They have to be kept equal for both BRAMs at all times because the response vectors have the same length as the test vectors and there are exactly as many vectors stored in one memory word at the input and output. The width of the memory is a very important parameter for frequency multiplication. The $clk_{bram}$ is different then the $clk_{uut}$ and their relation $k$ is strongly connected with the width of BRAM word and the width of the UUT interface showed in~\autoref{eq:ratio}. 
     \begin{equation}
     k = \frac{clk_{uut}}{clk_{bram}} = \frac{width_{bram}}{width_{uut}}\label{eq:ratio}
     \end{equation}
@@ -75,22 +98,22 @@ There are two solutions that have been implemented and tested to deliver data to
 \end{itemize}
 
 \subsection{Test Engine}\label{ssec:engine}
-The main core of the Test Bench is the Test Engine which feeds the test vectors to the UUT and gathers the response vectors. It consists of two parts:
+The main core of the test bench is the Test Engine which feeds the test vectors to the UUT and gathers the response vectors. It consists of two parts:
 \begin{itemize}
-    \item memory interface which calculates successive addresses for words in the memory bank and stores them in the input register every $clk_{bram}$ cycle. The addresses get incremented by $inc = width_{bram}/8$ due to the bytewise addressing scheme. The memory interface also handles the write back of the response every $clk_{bram}$ cycle from the output register. The number of pipeline stages for memory data read operation has to be taken into account. The number of pipeline stages determines the delay in clock cycles when the information, stored under the address given in the address register, actually gets to the input register of the test engine. The pipeline is used by Xilinx to increase the clock rate of their BRAM modules~\cite{report:BRAM}.
-    \item data downsize converter which reads input register and conducts parallel to parallel conversion where the input dimension is the $b=width_{bram}$ and the output dimension is the $u=width_{uut}$. The conversion process takes $k clk_{uut}$ cycles where $k$ is calculated as showed in~\autoref*{eq:ratio}. The Test Engine (\autoref{fig:testeng}) successively shifts the $u$ size test vectors through the design. With each $clk_{uut}$ cycle new data is placed on the input of UUT and new response vector gathered.
+    \item memory interface which calculates successive addresses for words in the memory bank and stores them in the input register every $clk_{bram}$ cycle. The addresses get incremented by $inc = width_{bram}/8$ due to the bytewise addressing scheme. The memory interface also handles the write back of the response every $clk_{bram}$ cycle from the output register. The number of pipeline stages for memory data read operation has to be taken into account. The number of pipeline stages determines the delay in clock cycles when the information, stored under the address given in the address register, actually gets to the input register of the Test Engine. The pipeline is used by Xilinx to increase the clock rate of their BRAM modules~\cite{report:BRAM}.
+    \item data downsize converter which reads input register and conducts parallel to parallel conversion where the input dimension is the $b=width_{bram}$ and the output dimension is the $u=width_{uut}$. The conversion process takes $k$ $clk_{uut}$ cycles where $k$ is calculated as showed in~\autoref{eq:ratio}. The Test Engine (\autoref{fig:testing}) successively shifts the $u$ size test vectors through the design. With each $clk_{uut}$ cycle new data is placed on the input of UUT and new response vector gathered.
     \item the upsize converter recombines the $u$ size responses into $b$ size word with another parallel to parallel conversion. The conversion is done by the shift register with parallel output. The functionality of shift registers is described together with the downsize conversion in the \autoref{subsec:mux}. The test vector and response vector have always the same width $u$, although the number of UUT inputs and outputs may vary. It is necessary to connect the unused ports of the Test Engine to a known constant value.
 \end{itemize}
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.65\textwidth]{figures/Test_Engine_complex.png}
 \caption{Test engine architecture}
-\label{fig:testeng}
+\label{fig:testing}
 \end{figure}
 
-The UUT is surrounded by flip-flops to guaranty, that the tested design is separated from the test engine logic. If it wasn't the case, the test procedure would include the Test Bench design and not only the UUT. Additionally the synthesis tool could combine some of the elements of the converters with the UUT logic. The structure of the Test Engine visible in \autoref{fig:testing} incorporates the idea of pipelining. Large functions are split into smaller atomic operations and the intermediate results are stored between the operations. This concept allows the whole logic to be clocked with higher frequencies, since the path from one register to the next one leads through only few logic gates or LUTs. 
+The UUT is surrounded by flip-flops to guaranty, that the tested design is separated from the Test Engine logic. If it wasn't the case, the test procedure would include the test bench design and not only the UUT. Additionally the synthesis tool could combine some of the elements of the converters with the UUT logic. The structure of the Test Engine visible in \autoref{fig:testing} incorporates the idea of pipelining. Large functions are split into smaller atomic operations and the intermediate results are stored between the operations. This concept allows the whole logic to be clocked with higher frequencies, since the path from one register to the next one leads through only few logic gates or LUTs. 
 
-When all buffered test vectores are processed and thereby all responses stored back, the test engine has to unplug the clock from the design. This procedure is conducted by special enable logic which switches on successive pipeline stages and switches them off together with the last valid input data.
+When all buffered test vectores are processed and thereby all responses stored back, the Test Engine has to unplug the clock from the design. This procedure is conducted by special enable logic which switches on successive pipeline stages and switches them off together with the last valid input data.
 
 \subsubsection{Data multiplexing}\label{subsec:mux}
 Although the design is pipelined, the memory interface has it's limitations and cannot be possibly clocked with the working frequency of the UUT. To overcome this limitation, more than one test vector is stored in one memory word. After the word is fetched, the test vectors are successively shifted through the design. One of the ways to convert wide parallel inputs into series of narrower outputs can be accomplished using big multiplexer (MUX), or rather an array of MUXes. With each tact the converter chooses different part of the longer word to be routed to the output. The solution is shown in \autoref{fig:mux}. Number of MUXes in this solution is always equal to the number of outputs of the converter, with each MUX having as many inputs as the relation $k$. Therefore the solution can be achieved using $u$ $k$-to-1 MUXes.
@@ -119,7 +142,7 @@ To provide the desired conversion each method involves different number of MUXes
 \label{fig:cascade}
 \end{figure}
 
-Let's consider an $i$-to-1 MUX. Looking from the right-hand side of the \autoref{fig:cascade} the first cascade has always only one MUX. The next one has 2, and the next one 4. There are always twice as many MUXes in the next step as there were in the previous one. These values are terms of the geometric progression with common ratio $q=2$. The number of 2-to-1 MUXes needed to split an $i$-to-1 MUX into cascades is the sum $S_n$ of all $n$ terms of the progression starting with $a_1=1$ and ending with $a_n=\frac{i}{2}$. The \autoref*{eq:nth} can be used to calculate the number of terms and the \autoref*{eq:sum} the sum of the progression. After rearranging the terms in \autoref*{eq:nth} for $n$ and substituting it with given values, the \autoref*{eq:nthres} shows the number of terms in the progression and therefore the number of cascades of MUXes.
+Let's consider an $i$-to-1 MUX. Looking from the right-hand side of the \autoref{fig:cascade} the first cascade has always only one MUX. The next one has 2, and the next one 4. There are always twice as many MUXes in the next step as there were in the previous one. These values are terms of the geometric progression with common ratio $q=2$. The number of 2-to-1 MUXes needed to split an $i$-to-1 MUX into cascades is the sum $S_n$ of all $n$ terms of the progression starting with $a_1=1$ and ending with $a_n=\frac{i}{2}$. The \autoref{eq:nth} can be used to calculate the number of terms and the \autoref{eq:sum} the sum of the progression. After rearranging the terms in \autoref{eq:nth} for $n$ and substituting it with given values, the \autoref{eq:nthres} shows the number of terms in the progression and therefore the number of cascades of MUXes.
 \begin{subequations}
 \begin{align}
     a_n&=a_1\cdot q^{n-1}\label{eq:nth}\\
@@ -128,7 +151,7 @@ Let's consider an $i$-to-1 MUX. Looking from the right-hand side of the \autoref
     n &= \log_2 i\label{eq:nthres}
 \end{align}
 \end{subequations}
-Using the \autoref*{eq:sum} the sum of the progression and therefore the sum of all MUXes is calculated in \autoref*{eq:sumres}.
+Using the \autoref{eq:sum} the sum of the progression and therefore the sum of all MUXes is calculated in \autoref{eq:sumres}.
 \begin{subequations}
 \begin{align}
     S_n&=a_1\cdot\frac{1-q^{n}}{1-q}\label{eq:sum}\\
@@ -137,22 +160,103 @@ Using the \autoref*{eq:sum} the sum of the progression and therefore the sum of 
 \end{align}
 \end{subequations}
 
-To compare both converting solutions, the one with multi-input MUXes has to be broken into cascades of 2-to-1 MUXes. There were $u$ $k$-to-1 MUXes needed in the first solution. Using the \autoref*{eq:sumres} the number of 2-to-1 MUXes needed for this solution is $u(k-1)$. The second solution required $(b-u)$ MUXes, which can be calculated using \autoref*{eq:ratio} as $(uk-u)=u(k-1)$. The number of 2-to-1 MUXes in both solutions is the same, therefore the solution without shift registers is better, because of smaller hardware overhead and is used in the test bench.
+To compare both converting solutions, the one with multi-input MUXes has to be broken into cascades of 2-to-1 MUXes. There were $u$ $k$-to-1 MUXes needed in the first solution. Using the \autoref{eq:sumres} the number of 2-to-1 MUXes needed for this solution is $u(k-1)$. The second solution required $(b-u)$ MUXes, which can be calculated using \autoref{eq:ratio} as $(uk-u)=u(k-1)$. The number of 2-to-1 MUXes in both solutions is the same, therefore the solution without shift registers is better, because of smaller hardware overhead and is used in the test bench.
+\subsection{Configuration Unit}
+To control the Test Engine, a configuration unit has been connected between the PS and PL. There are four registers that are accessible from the PS. Two registers when read, hold the actual frequency of both clocks, and the RDY flag, when written, they set the ENA flag, start and end address for BRAM operations and reset signal for the Test Engine and Frequency Monitors. The custom AXI IP is showed in the ~\autoref{fig:custom_ip}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/Custom_ip.png}
+\caption{Configuration Unit AXI Custom IP based on~\cite{report:custom_ip}}
+\label{fig:custom_ip}
+\end{figure}
 
 \subsection{Configurable Clock}
-One of the crucial tasks of the test bench is the ability to test the design with different frequencies. The frequency has to be dynamically adjustable and stable at all times. The dynamical synthesis of the clock is possible thanks to Mixed-Mode-Clock-Manager (MMCM)...
+One of the crucial tasks of the test bench is the ability to test the design with different frequencies. The frequency has to be dynamically adjustable and stable at all times. The dynamical synthesis of the clock is possible thanks to Mixed-Mode-Clock-Manager (MMCM)~\cite{manual:MMCM}. The MMCM is shown in the~\autoref{fig:MMCM}. There are two input clocks and two reference clocks. Both input clocks are divided by coefficient D at their input. The input signal and reference signal enter the pulse frequency detector (PFD), which detects the phase shift and frequency difference between clocks. It produces the up and down signals for charge pump (CP) and loop filter (LF) to influence their outputs. If the frequency is too high, the down signal indicates, that the CP should lower its output voltage, which manipulates the voltage controlled oscillator (VCO). If the frequency is too high, the down signal is sent. The VCO is connected with seven counters, that can have adjustable outputs. The eighth counter is a feedback counter for additional fractional divide (M) of the reference clock and therefore of the output clocks. When the output clock frequency is stable, on all inputs, a locked signal is set.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/MMCM.png}
+\caption{Deteiled MMCM Block Diagram~\cite{manual:MMCM}}
+\label{fig:MMCM}
+\end{figure}
+
+In the current version of the test bench, only the prescaling of clocks is used. There is no phase shift required. The parameters D and M define the frequency of the VCO. The parameter O0 changes the $clk_{uut}$ frequency and the parameter $O1$ - the $clk_{BRAM}$. During the parameter change, the clock output is unstable, therefore the change happens between tests and not during the test. All parameters are adjustable via AXI interface. 
+
+There are many valid parameter combinations, that result in the same output frequencies. According to~\cite{manual:MMCM} there is a following algorithm to be followed:
+\begin{enumerate}
+    \item constrain the M and D parameters to not generate the out of range frequencies 
+
+    \begin{subequations}
+        \begin{alignat}{4}
+            & D_{MIN} &&=roundup(\frac{F_{IN}}{F_{PFD\_MAX}}),\quad && where \ F_{PFD\_MAX} && =450 \ MHz \label{eq:dmin}\\
+            & D_{MAX} &&=rounddown(\frac{F_{IN}}{F_{PFD\_MIN}}),\quad  && where \ F_{PFD\_MIN} && =10 \ MHz \label{eq:dmax}\\
+            & M_{MIN} &&=roundup(\frac{F_{VCO\_MIN}}{F_{IN}} \cdot D_{MIN}),\quad && where \ F_{VCO\_MIN} && =600 \ MHz \label{eq:mmin}\\
+            & M_{MAX} &&=rounddown(\frac{F_{VCO\_MAX}}{F_{IN}} \cdot D_{MAX}),\quad && where \ F_{VCO\_MAX} && =1200 \ MHz \label{eq:mmax}
+        \end{alignat}
+    \end{subequations}
+For $F_{IN} = 100 \ MHz$, which is a system clock provided as the input to the MMCM unit, parameters $D \in [1,10]$ and $M \in [6,120]$. The maximal output frequency is 800 MHz according to the Clock Wizard in Xilinx IP Integrator. It is possible to dynamically change the frequency to be higher then this limit.
+    \item after specifying the input frequency, there are many possible parameter combinations that produce desired output frequency. The goal is to find such pair of $M$ and $D$, so that the $F_{VCO}$ is maximal, while the parameters are both minimal. There is a suggested formula to calculate an ideal M parameter first, starting with minimal D value.
+    \begin{equation}
+        M_{IDEAL} = \frac{D_{MIN} \cdot F_{VCO\_MAX}}{F_{IN}} \label{eq:mideal}
+    \end{equation}
+    According to \autoref{eq:mideal} the $ M_{IDEAL} = 12$ and therefore the $F_{VCO\_IDEAL}=F_{VCO\_MAX}=1200 \ MHz$. 
+\end{enumerate}
+Let's try to set the parameters for two output frequencies \\$F_{UUT} = 112 \ MHz$ and $F_{MEM} = 28 \ MHz$. All frequencies in the test bench are always related by the ratio, so the $O$ parameters of output counters will alway have the same relationship. The VCO frequency is common for all output clocks.
+The \autoref{tab:MMCM} shows all possible parameters that should produce the desired output frequenciees.
+
+\begin{table}[h]
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+D & M & VCO & O0 & O1 \\
+\midrule
+1 & 7.0 & 700 & 6.25 & 25 \\ 
+2 & 14.0 & 700 & 6.25 & 25 \\ 
+3 & 21.0 & 700 & 6.25 & 25 \\ 
+4 & 28.0 & 700 & 6.25 & 25 \\ 
+5 & 35.0 & 700 & 6.25 & 25 \\  
+6 & 42.0 & 700 & 6.25 & 25 \\ 
+7 & 49.0 & 700 & 6.25 & 25 \\ 
+8 & 56.0 & 700 & 6.25 & 25 \\ 
+9 & 63.0 & 700 & 6.25 & 25 \\ 
+5 & 42.0 & 840 & 7.50 & 30 \\ 
+5 & 49.0 & 980 & 8.75 & 35 \\ 
+5 & 56.0 & 1120 & 10.00 & 40 \\ 
+\bottomrule
+\end{tabular}
+\centering
+\caption{All possible MMCM parameters} \label{tab:MMCM}
+\end{table}
+
+There are several possible results, that satisfy the algorithms requirements, depending on which are more important. The minimal values of $M$ and $D$ are $D=1$ and $M=7.0$, the closest values to the ideal $M$ are $D=2$ and $M=14.0$, the highest, and most optimal, $F_{VCO}$ is achieved when $D=5$ and $M=56.0$. The Xilinx Customization Tool for Clock Wizard (v5.3) IP in Vivado 2016.3 sets the $M = 49.0$ and $D=5$, which gives $VCO = 980\ MHz$. Neither $M$ nor $D$ are minimal and they don't result in the maximal $VCO$. There is not enough information in the user guide to determine how exactly is Xilinx choosing the right parameter set.
+
+To find the right parameters, all combinations have been generated and tested. Not all have been successfully synthesized in the design, although the parameters laid in the allowed range. There were more parameter combinations possible for each output clock rate and always the first lucky choice has been saved to the look up table. There were some output clocks that were not reached. The PC application loads the parameters from the file at the start up and if the desired frequency is not listed, the tool uses the closest one from the list. This approach saves a lot of time, which would be wasted on trying to guess the successful combination.
+\subsection{Clock Monitor}
+To check if the desired frequencies in the design are properly set, there are two clock monitors, that count clock pulses during specified time. The number of pulses is then processed in the middleware and passed to PC application as frequency value. 
+
+The clock monitor contains two counters, one counts pulses of the variable clock and the other of the reference clock. The measurement time depends on the length of the reference counter. In this example it is 13 bits. Half for the measurement ($2^{12}$) and half for latching the data out and reseting the counter. This approach guaranties a proper clock domain crossing. The reference clock is a 100 MHz system clock, which gives a total measurement time of $10ns \cdot 4096 \approx 40 \mu s$. Every $80 \mu s$ a new value of the reference counter is visible on the output. The output is mapped thanks to AXI bus and can be read directly in the middleware. The variable counter is 16 bit long, so the variable frequency can be $2^{16}/2^{12} = 2^4 = 16$ times faster then the reference clock. It is 1,6 GHz. The output signal can be latched during 1024 cycles of the reference clock, making the minimal frequency of the variable clock to be $100MHz\ / 1024 \approx 100 \ kHz$. The example of clock monitor wave diagram is shown in \autoref{fig:clk_monitor}. The output frequency is calculated as $4/8 \cdot 100 \ MHz = 50\ MHz$. The latch enable signal is active only for 2 cycles, so the output value is barely latched. The same concerns the reset signal. This is the minimum detectable frequency. On the other hand, If the variable frequency would exceed the 1,6 GHz, the variable counter would overflow and the output value would again be wrong.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/clk_monitor.png}
+\caption{Clock Monitor wave diagram}
+\label{fig:clk_monitor}
+\end{figure}
 
 \section{Graphical User Interface}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.25\textwidth]{figures/PC.png}
+\includegraphics[width=0.65\textwidth]{figures/PC.png}
 \caption{Graphical User Interface}
 \label{fig:gui}
 \end{figure}
 
+\subsection{Data formatting}
+The formatting of the data takes place already in the PC application, but it belongs logically to the middleware. In the future the data could be sent compressed and formatted by the embedded processor, rather then prior to transmission, but in the current state it is done by PC, with utilization of parallel computing. The formatting depends on two factors: the width of a memory word and the width of the hardware interface. There are always more then one test vectors written to one memory word. Every bit in the test vector describes the state of one input during one clock cycle.
+
 \section{Test of Inverter}
-To test the limits of the Test Bench, and therefore be able to estimate the maximal working frequency for tests, a simple array of NOR gates have been used as UUT. The implementation of one gate in the FPGA takes only one LUT and the logic delay is only X us. For more inputs, there are more LUT needed, but there will always be just one LUT between two registers. If the LUT is not placed far away from the Test Bench it is safe to assume, that the longest path lays somewhere in the rest of the Test Bench. The following table shows the maximum frequency values reported by Vivado IDE. All paths leading from and to the configuration unit are ignored, since those values are treated by the Test Bench as constants and change only off-line.
+To test the limits of the test bench, and therefore be able to estimate the maximal working frequency for tests, a simple array of NOR gates have been used as UUT. The implementation of one gate in the FPGA takes only one LUT and the logic delay is only X us. For more inputs, there are more LUT needed, but there will always be just one LUT between two registers. If the LUT is not placed far away from the test bench it is safe to assume, that the longest path lays somewhere in the rest of the test bench. The following table shows the maximum frequency values reported by Vivado IDE. All paths leading from and to the configuration unit are ignored, since those values are treated by the test bench as constants and change only off-line.
 
 Another table shows the results during the real test after implementation.
 
