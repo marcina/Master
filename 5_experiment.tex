@@ -1,74 +1,78 @@
 %% It is just an empty TeX file.
 %% Write your code here.
-\chapter{Experiment I}
+\chapter{Communication System Test}
 
+
+
+\section {ParSec Communication System}
 Various signals transmitted in industrial environment have different requirements in terms of dependability. Let's consider a simple CCTV video transmission system. Each frame, even in low resolution solutions, consists of several hundred thousands pixels. The frame rate lies somewhere between 30 and 5 frames per second, depending on the requirements. Even multiple bit error in the compressed video information bitstream leads just to the corruption of some frames. Depending on the error rate and frame rate, such disturbance may not influence the correct service at all, just lowering the video quality. The system, despite some errors, still fulfills it's function. 
 On the other hand the information flow between the control system and the nodes, placed on the robotic arms on the assembly line, consists in constant transmission of the coordinates of the destination and position of the arm. An error in such information can lead to the damage of manipulated objects or another catastrophic system failure.
 Moreover, the quality of the signal propagation in such a rapidly changing environment is not constant. The error rate can significantly rise for a short time, but be relatively low otherwise. Spending time, power and resources on complex encoding and decoding may not be justified for the majority of the systems life time. The ability to adapt to the quality of the transmission would be just another advantage of well designed communication system.
-In conclusion, the requirements of the industrial wireless system are diversified and need a configurable solution, that could offer a constantly high level of dependability while adapting to its environment and the use case. The high level of dependability means also the coverage of the non-recurrence of the Fault Tolerance. In other words, the channel encoders and decoders have to be reliable themselves.
+In conclusion, the requirements of the industrial wireless system are diversified and need a configurable solution, that could offer a constantly high level of dependability while adapting to its environment and the use case. The high level of dependability means the coverage of the hardware faults in the first place, since they can even prevent the establishment and synchronization of the connection.
 
+The goal of the ParSec project is to create a dependable, flexible and secure wireless communication system which meets all industrial automation requirements. It has to work with latencies below 1 ms and with very high noise level, serving many distributed clients at once. Moreover it has to deal with fading effects and potentially many reflections or even obstacles coming in the way of transmission and breaking it.
 
-\section{FEC in wireless communication}\label{sec:PENCA}
-The theory behind the creation of Error Correction Codes (ECC) has been presented in \autoref{sec:cod}. The detection and correction of single bit errors can be achieved using a simple Hamming code \cite{art:Hamming}. With Hsaio Code or extended Hamming Code the single error correction and double error detection is possible \cite{book:Fujiwara,art:Hsiao}. Unfortunately in such a noisy and harsh environment as industrial production site, there may be faults causing more than one or two bit flips in the data bit stream. For such purposes the multiple-bit correcting codes like Reed-Solomon code \cite{Redd-Solomon} or BCH Code \cite{BCH} are suggested. They typically require much more effort in  encoding and especially in decoding the information. They tend to be slower. There are also other methods to deal with correction of two-bit errors like \cite{Hosp, Varghese}. All these proposals lack a simple one-fits-all solution, that could be used and configured to the needs of the target system and it's environment.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.25\textwidth]{figures/PENCA.png}
-\caption{Basic scheme of the new dependable PENCA architecture~\cite{art:Pfeifer}}
-\label{fig:PENCA}
-\end{figure}
-
-Programmable Encoder Architecture (PENCA) designed by P. Pfeifer and H. T. Vierhaus, firstly introduced in \ref{art:Pfeifer}, showed in~\autoref{fig:PENCA}, is an answer to the strict requirements of the dependable communication systems. The core of the solution consists in the "honeycomb" structure of units. The units can be replaced by neighboring units in case of errors detected in one of them. The internal test can be performed automatically or on demand. After testing, the unit can be marked as faulty, once the test fails, and its functionality logically remapped into another unit. Both the input and output units are implemented in two copies, since they are single points of failure and in case of permanent fault detected wouldn't be able to get repaired without a spare. The control of the system is done through the microcode (secured with parity bits). But above all, the architecture can be configured to serve as different channel encoders, starting with the implementation of the single error correcting codes and ending with the multiple-bit error correcting codes or even cross-parity codes. It is done via generation of polynomials by each unit and sometimes even borrowing resources from neighboring units for more extended polynomial generations. Each unit being able to perform BCH generator polynomial length task up to 42 coefficients (34 BCH codes) or 65 coefficients (50 BCH codes) with borrowed resources.
-\subsection{Test of PENCA core}
-The Unit Under Test is the internal core of the PENCA. The version is simplified and is not driven by opcodes, but by the 64-bit configuration bit-stream that sets all units to their desired functionality. The goal of the test is functional validation of the system and detection of its maximum frequency. For this purpose a Test Bench described in~\autoref{ch:Test_Bench} was used.
-The components of Petr Pfeifer's composition, have been delivered as VHDL source file. The interface of the design is shown in \autoref{fig:PENCA_interface}.
+The ParSec communication system (shown in~\autoref{fig:ParSec}) consists of the MAC Layer processing, taking place within a standard processor, implemented mostly as software routines. The standard industrial bus, where all instructions come from. Followed by the FEC unit and by a frame formatter. The last part is the baseband processor, which consists of mixed and analog signal processing and Radio Frequency unit. 
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.25\textwidth]{figures/PENCA_interface.PNG}
-\caption{Interface of PENCA}
-\label{fig:PENCA_interface}
+\includegraphics[width=0.65\textwidth]{figures/ParSec.png}
+\caption{Block Diagram of the ParSec communiaction system}
+\label{fig:ParSec}
 \end{figure}
 
-To test the design in hardware it needs to be translated from the behavioral description into a real FPGA structure. The first stage of processing the design, after writing the source code, is the elaboration which translates the VHDL source code into electronic structures, like registers, logic gates, etc. This allows the designer to see if his concept, written as text, is describing the hardware properly.
-The elaboration of the design and study on the source code reveals a repetitive structure of the design. The logic of the first two modules is shown in \autoref{fig:unit}. There are two clocks in the design. One clock is responsible for shifting in the configuration bit-stream, the other clock tacts the internal units, data input and output. Yellow elements are registers, that separate the successive sequential states from each other. They are the only sequential parts of the design. The clouds represent combinational logic, where outputs are logical functions of the inputs. This representation of the logic helps to keep the schematic clear and readable. the only important information are the inputs and outputs of the clouds. The trapezoid stays for multiplexer, forwarding one of the inputs to the output. Multiplexers are also parts of the combinational logic, since they are not driven by any clock and their output is a simple function of their inputs, but the schamatic profits when distinguishing then from the rest of the logic. The figure focuses on the data flow in the design, leaving the clocks aside. However one cannot forget that during each clock cycle, signals are propagated along the arrows and have to reach the registers inputs before the end of the cycle.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{figures/Unit_arch.png}
-\caption{Schematic of two PENCA units}
-\label{fig:unit}
-\end{figure}
-
-\subsection{Structure Analysis}
-Let us start with the configuration path, clocked with \textit{CFG\_CLK}. The configuration register is a shift register. Every Unit has its own configuration register and it can be chosen thanks to the simple addressing of \textit{CFG\_SEL}. After the analysis of the source code and the elaborated design, it is clear what the particular parts of the configuration bit-stream stand for. As visible in the \autoref{fig:unit}, the \textit{CHx\_CFG [57:15]} are parameters of the equation used in calculation of the parity bits for each unit. Each calculation step is stored back into \textit{CHx\_RGD} register. The \textit{CHx\_CFG [63:58]} selects which \textit{CHx\_RGD [i]} register is used for building a new parity bit and which \textit{CHx\_RGD} register will be used to calculate new value of the \textit{CHx\_RGD[i]} register. The \textit{CHx\_CFG [9:0]} is a counter value that indicates when to stop forwarding \textit{DATA\_IN} straight to the \textit{DATA\_OUT} and start building parity bits using \textit{CHx\_RGD[i]} register. The combinational logic used to calculate a new value of the \textit{CHx\_RGD[i]} register takes following inputs: the parameters stored in \textit{CHx\_CFG [57:15]}, the actual value of the \textit{CHx\_RGD[i-1]} and modified value of any other \textit{CHx\_RGD} or even \textit{CH(x+1)\_RGD}. The \textit{CH(x+1)\_RGD} stands for coefficients used in the next unit and only a half of those coefficients can be used in the calculation. The same applies for any unit, that uses all it's own coefficients and half of the coefficients of its successor.
-\subsection{Design elaboration}
-The elaboration process is actually a part of the project synthesis. It is creating a netlist that can be used by the synthesis tool to apply constraints to the design. It also maps the logic into FPGA internally used structures like Look Up Tables or Block Rams, but it doesn't decide where to place them yet. The mapping and netlist allow to conduct the first timing analysis, where the logic delays are known and the transportation delays are estimated. The Vivado IDE requires timing constraints to run the timing analysis. After the analysis, the tool reports back which paths did not fulfill the constraints. The speed of the design is determined by its longest/slowest path. The tool doesn't know yet the exact net delays but the estimation is usually helpful and lets the designer correct the source code before the design is placed in the actual target FPGA structure. In the case of the PENCA design there are two candidates for the longest possible path even before the synthesis. They are both marked in the \autoref{fig:unit}. The red path is the local feedback in calculation of the \textit{CHx\_RGD} and it is taken, when all coefficients used come from one unit. The blue path shows the situation when the coefficients are "borrowed" from the neighboring unit.
-\subsection{Design Synthesis}
-The synthesis tool shows that the path leading from the \textit{CH12\_RGD} to \textit{CH11\_RGD} is probably the longest path in the design and is estimated to take $5,061 ns$. The value is a sum of the logic delay $1,690 ns$ and the net delay $3,371 ns$. The path is shown in \autoref{fig:path}.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{figures/path.png}
-\caption{Longest synthesized path in the PENCA design}
-\label{fig:path}
-\end{figure}
-
-The net delay is a double of the logic delay, which is caused by the fact, that the source register belongs to the 12th unit and the sink register to the 11th unit. The path corresponds to the blue scenario in \autoref{fig:unit}. The result of the synthesis is therefore a maximal possible frequency of the design, which theoretically comes to $197.589 MHz$. The high number of LUTs in the path is a result not only of the simple logical functions, but mostly because of the very big multiplexer, having 65 inputs. The multiplexing task is split into a simple multiplexer and row of LUTs.
-
-\subsection{Design Implementation}
-The last step of the work flow with the design is its implementation into the target architecture. The Look Up Tables and Memories and multiplexers are mapped into real CLBs of the target FPGA. The timing analysis in this step is the most accurate, that can be provided by the manufacturer. The only way to see the real cut-off frequency of the design is while testing it after the implementation. The UUT has to be placed in the FPGA with the Test Bench together in order to conduct the post-implemetation test. The result of the timing analysis 
-
-\chapter{Experiment II}
-
-The ParSec communication system (shown in~\autoref{fig:ParSec}) consists of:
+The dependability of such a system is threatened by many factors:
 \begin{itemize}
-    \item MAC Layer processing, taking place within a standard processor, implemented mostly as software routines, interfaced with standard industrial bus.
-    \item Forward Error Correction, as specialized reconfigurable hardware module
-    \item followed by frame formatter
-    \item Baseband processor, which consists of hardware processing and Radio Frequency units
+    \item random errors in the noisy channel and soft errors due to transient faults in hardware modules
+    \item hard errors due to permanent faults in hardware modules
 \end{itemize}
-The dependability of such a system is threatened by random errors in noisy channel, soft errors due to transient faults and hard errors due to permanent faults in hardware modules. Every ECC has its limits resulting from minimum hamming distance of its code space. The limits are oriented on the number of faults in one block and not on average fault rate of transmission channel. The following experiment aims at detecting the real correcting capabilities of ECC.
+
+\subsection{FEC in ParSec project}
+laying between FEC encoder and decoder, can be indivisible corrected thanks to ECC, as long as their number doesn't exceed the ECC correction capability\cite{source}. There are many techniques to improve the signal quality and make it resistant to fading effects due to multi-path signal propagation, poor signal-to-noise ratio or interferences, lowering the error rate. The known and used techniques involve Orthogonal Frequency Domain Multiplexing (OFDM) \cite{book:OFDM,art:OFDM}, Spread-Spectrum Communication \cite{art:spread-spectrum96,art:spread-spectrum97} or Ultra Wide-Band Frequency Communication \cite{book:ultra-wide08,book:ultra-wide04}. The ParSec project has to face environments even worse then anticipated during creation of those methods and with much shorter latencies. The OFDM technique would be suitable, but it needs many very fast AD converters~\cite{art:PSSS04}. The solution chosen for ParSec is Parallel Sequence Spread Spectrum (PSSS) technology~\cite{art:PSSS15,art:PSSS04,patent}. It provides comparable transmission quality as OFDM, without the cost of expensive AD converters.
+
+hard errors due to permanent faults in hardware modules require special treatment since they can even prevent the synchronization of transceiver and receiver and therefore cannot be so easily corrected by FEC. Since permanent faults don't disappear, they also need special repair mechanism, which often means a doubling of the unit or its parts. The fault diagnosis proves to be complicated, especially in the mixed signal and analog parts, moreover when the access to this parts is limited. When an IP is shipped as a "black box" and there is no possibility to implement any internal DfT techniques, some sort of external test is required. 
+
+
+
+\section{Functional Shorts Concept}
+Thanks to ECC, a precise detection of error positions in the received bitstream is possible, as long as the error count doesn't exceed its correcting capabilities. The idea behind the diagnostic test based on extended FEC functions is to use the existing FEC redundancy and detect not only soft errors and transmission errors, but also hard errors. As mentioned in the~\autoref{sub:limits} the ECC can be used in hardware monitoring only if the input and output of the UUT are identical. Since the wireless communication is usually a duplex communication, every node happens to own both, the transmitter and receiver. They consist of complementary building blocks. Every modulator in transmitter is substituted with a demodulator in receiver, every encoder with decoder. The basic task of the receiver modules is to recreate the original information sent by transmitter, step by step, layer by layer. A diagnostic test would require to short the transmitter with receiver and systematically short the outputs of every module with the inputs of their corresponding module. With encoder and decoder in one closed system, it should be possible to detect the exact positions of errors in the bitstream and identify faulty units. The decoder would act as a response analyzer. In this way, the information leaving FEC encoder arrives at the input of FEC decoder, manipulated only by permanent faults in the shorted modules. The idea is presented in~\autoref{fig:Shorts}. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/Shorts.png}
+\caption{Transmitter and receiver shortcut idea for diagnostic test purposes}
+\label{fig:Shorts}
+\end{figure}
+
+In order to conclude such test, the physical shorts need to be implemented. A simple multplexer demultiplexer pair with the common control logic would allow to choose between a normal functionality and shortened path. Additionally the test vectors need to be generated or stored in ROM. The fault detection occurs thanks to an extended decoder functionality, which signalizes, with a special ISERR output, if the current bit of the bit stream has been flipped or not. This functionality is also used during the normal data flow, to adjust the transmission parameters and adapt the FEC algorithm. A simple counter connected to this special output counts the number of bit flips in every block. This information can be used for channel quality estimation. 
+The idea of functional shorts has been implemented into the Test Bench together with fault injection capability and is shown in \autoref{fig:shorts_ena}. The injected fault vector manipulates the output of any chosen module to simulate the possible effects of hardware faults on the processed information. The implementation lacks real modules, except from the encoder and decoder. Every other module is implemented as a simple delay in the digital information flow. The Air simulates the communication channel. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.65\textwidth]{figures/Short_ena.png}
+\caption{Implementation of functional shorts into the Test Bench}
+\label{fig:short_ena}
+\end{figure}
+
+\subsection{Diagnostic test Procedure}
+Let's assume, that the FEC decoder is fault-free and that every module owns some sort of repair ability. The erroneous unit would be the Radio Frequency unit of the receiver.
+\begin{enumerate}
+    \item Start the test by enabling the shortcut nr. 3, closing the test loop between transmitter and receiver
+    \item Conclude the test by running all test vectors through the design, placing them on the inputs of FEC encoder, until the first occurrence of the ISERR set high
+    \item Enable shortcut nr. 2
+    \item Run test again and detect no errors, since the faulty unit is not in the test loop
+    \item Run repair procedure on the transmitter RF unit
+    \item Enable Shortcut nr. 2
+    \item Run the test only to see the ISERR is high again
+    \item Run repair procedure on RF unit of the receiver, revert the repair of the transmitter RF unit
+    \item Start the test again to see no errors detected
+\end{enumerate}
+
+The diagnostic test efficiency is only as good as the FEC implementation. Let's try to examine the encoder and decoder to see what are the limitations of the procedure and what kinds of faults and in what number can be detected.
+
+\section{Test of BCH(1023,943) Encoder}
+The Programmable Encoder Architecture (PENCA) designed by P. Pfeifer, firstly introduced in \ref{art:Pfeifer}, used within the ParSec project, contains an internal test capability. 
+\section{Test of BCH(1023,943) Decoder}
 \section{Test of transmission path with known average error rate}
 The Unit Under Test consists of one chosen, hard coded BCH(1023,943) encoder capable of correcting up to 8 bits per block. The decoder is followed by simple XOR gate, which overlays encoder output with error vector, simulating random errors in transmission path and transient errors in data processing digital logic laying on-path. The last module is the corresponding BCH decoder, with output indicating if the next data bit has been repaired or not. All modules are separated by flip-flops to simulate the delay that happens on the way between encoder and decoder. The error vector is supplied as just another input of the Test Bench.\\
 
