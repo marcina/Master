@@ -262,4 +262,21 @@ Another table shows the results during the real test after implementation.
 
 It is visible that the reported values are lower than the real ones. This phenomenon has been described in \ref{PetrPfeifer}.
 
-
+\begin{table}[]
+\label{tab:max_freq}
+\begin{tabular}{@{}llll@{}}
+\toprule
+UUT                       &mem\_width   &uut\_width &max. frequency \\ 
+\midrule
+\multirow{3}{*}{Inverter} &32           &4       & $\sim$536 MHz\\ 
+                          & 32          & 8      & $\sim$500 MHz \\  
+                          & 32          & 16     & $\sim$517 MHz \\ 
+\midrule
+Encoder                   & 32          & 4      & $\sim$326 MHz \\ 
+\midrule
+Decoder                   & 32          & 4      & $\sim$231 MHz \\  
+\bottomrule
+\end{tabular}
+\centering
+\caption{Test for max. frequency}
+\end{table}
