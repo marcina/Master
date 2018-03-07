@@ -100,7 +100,7 @@ author      = {Crockett, L. H. and Elliot, R. A. and Enderwitz, M. A. and Stewar
 }
 
 @manual{report:custom_ip,
-  title  =        {Creating {AXI}-{LITE} "Custom IP" in Vivado},
+  title  =        {Creating {AXI}-{LITE} "{Custom} {IP}" in {Vivado}},
   number =        {UG761 (v 13.1)},
   author =        {Garg, S. and Kroh, A.},
 }
@@ -121,7 +121,13 @@ author      = {Crockett, L. H. and Elliot, R. A. and Enderwitz, M. A. and Stewar
   month         = {March},
 }
 
-
+@manual{report:BRAM,
+  title  =        {Block Memory Generator v8.3, {PG058} },
+  number =        {PG058},
+  organization  = {Xilinx Inc.},
+  year          = {2017},
+  month         = {April},
+}
 
 
 @Article{art:Shannon,
@@ -152,7 +158,7 @@ author      = {Crockett, L. H. and Elliot, R. A. and Enderwitz, M. A. and Stewar
 }
 
 @Article{art:LDPC,
-    title   = {Near Shannon Limit Performance of Low Density Parity Check Codes},
+    title   = {Near Shannon Limit Performance of {Low} {Density} {Parity} {Check} {Codes}},
     journal = {Electronics Letters},
     year    = {1996},
     month   = jul,
@@ -160,11 +166,48 @@ author      = {Crockett, L. H. and Elliot, R. A. and Enderwitz, M. A. and Stewar
 }
 
 @Article{art:turbo,
-    title   = {Near Shannon Limit error-correcting coding and decoding: Turbo-codes},
+    title   = {Near {Shannon} Limit error-correcting coding and decoding: Turbo-codes},
     journal = {Proceedings of IEEE International Communications Conference},
     year    = {1993},
     author  = {Berrou, C. and Glavieux, A. and Thitimajshima, P.},
 }
+
+@Article{art:Reed-Solomon,
+    title   = {A class of muliple-error-correcting codes and the decoding scheme},
+    journal = {Technical Report},
+    number =  {44},
+    year    = {1953},
+    author  = {Reed, I. S.},
+}
+
+@Article{art:BCH,
+    title   = {Encoding and error-correction procedures for the {Bose}-{Chaudhuri} codes},
+    journal = {{IRE} Transactions on Information Theory },
+    Volume  = {6},
+    number =  {4},
+    pages  =  {459 - 470},
+    year    = {1960},
+    month = {September},
+    author  = {Peterson, W.},
+}
+
+@Article{art:Hosp,
+    title   = {Modifizierung des {Cross}-{Parity}-{Codes}},
+    journal = {Testmethoden und Zuverl\"{a}ssigkeit von Schaltungen und Systemen (TUZ)},
+    pages  =  {45-48},
+    year    = {2014},
+    author  = {Hosp, S. and G\"{o}ssel, M.},
+}
+
+@Article{art:Varghese,
+    title   = {Multiple bit error correction for high data rate aerospace applications},
+    journal = {IEEE Conference on Information Communication Technologies (ICT)},
+    pages  =  {1086-1090},
+    month = {April},
+    year    = {2013},
+    author  = {Varghese, B.},
+}
+
 
 @Article{art:Laprie,
     title   = {Dependable Computing and Fault Tolerance: Concepts and Terminology},
@@ -183,7 +226,7 @@ author      = {Crockett, L. H. and Elliot, R. A. and Enderwitz, M. A. and Stewar
 @Article{art:Avizienis2,
     title = {Dependability and its threats: A Taxonomy},
     year = {2004},
-    author = {Avizienis, A. and Laprie, J. C. and Randell},
+    author = {Avizienis, A. and Laprie, J. C. and Randell, B.},
     
 }
 
@@ -198,7 +241,7 @@ author      = {Crockett, L. H. and Elliot, R. A. and Enderwitz, M. A. and Stewar
 }
 
 @Article{art:Dicorato,
-    title = {Fault Detection and Self Repair in Hsiao-Code {FEC} Circuits},
+    title = {Fault Detection and Self Repair in {Hsiao}-Code {FEC} Circuits},
     author = {Dicorato, D. and Pfeifer, P. and Vierhaus, H. T.},
     journal = {2017 IEEE 20th International Symposium on Design and Diagnostics of Electronic Circuits \& Systems (DDECS)},
     year = {2017},
@@ -223,7 +266,7 @@ author      = {Crockett, L. H. and Elliot, R. A. and Enderwitz, M. A. and Stewar
     month = {April},
 }
 
-@Misc{patent,
+@Article{patent,
 title = {A method for transmitting a data word},
 author = {Wolf, A.},
 number = {EP04701288.5-1515/1584151, DE 10 2004 033 581, US 20060256850},
@@ -255,7 +298,7 @@ year = {2004},
 }
 
 @Article{art:spread-spectrum97,
-    title = {Frequency-diversity spread-spectrum communication system to counter bandlimited Gaussian interference},
+    title = {Frequency-diversity spread-spectrum communication system to counter bandlimited {Gaussian} interference},
     author = {Kaleh, G.},
     journal = {Transactions on Communications, {IEEE}},
     volume = {44},
@@ -291,11 +334,29 @@ year = {2004},
     author  = {Pfeifer, P. and Vierhaus, H. T.},
 }
 
-@online{web:hamming_dist,
+@Article{art:Gleichner,
+author = {Pfeifer, Petr and Gleichner, Christian and Vierhaus, Heinrich},
+year = {2016},
+month = {04},
+pages = {},
+title = {Flexible Test, Error Detection and Correction in Dependable Communication Systems incl. Results on 28 nm {Xilinx} and {Altera} {FPGAs}}
+}
+
+
+@Article{web:hamming_dist,
  author  = "en:User:Cburnett",
  title   = "Hamming distance cube for 3-bit binary numbers",
  year    = "31 December 2006",
- url     = "https://commons.wikimedia.org/wiki/File:Hamming_distance_3_bit_binary.svg",
- note    = "GNU Free Documentation License"
+ journal     = "https://commons.wikimedia.org/wiki/File:Hamming\_distance\_3\_bit\_binary.svg",
+ note    = "Wikimedia GNU Free Documentation License"
+}
+
+@Article{art:BCH_implement,
+author  = {Priya, M. and Lismi, A. and Sabarinath, G. and Tomson, D.},
+year = {2014},
+month = {08},
+title = {Hardware Implementation of (63, 51) {BCH} Encoder and Decoder for Wban Using {LFSR} and BMA},
+volume = {3},
+journal = {International Journal on Information Theory}
 }
 

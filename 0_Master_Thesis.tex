@@ -4,7 +4,9 @@
 
 \usepackage[table,xcdraw]{xcolor}
 \usepackage{multirow}
-\usepackage{subfig}
+%\usepackage{subfig}
+\usepackage{graphicx}
+\usepackage{subcaption}
 \usepackage{float}
 \usepackage{amsfonts}
 \usepackage{pdfpages}
@@ -41,7 +43,7 @@ linewidth=\textwidth
 
 \linespread{1}
 
-\author{Marcin Aftowicz}
+\author{Marcin Jaros\l aw Aftowicz}
 \title{Hardware Test and fault diagnosis based on extended FEC functions  in wireless communication systems}
 \mysupervisor{Prof. Dr.-Ing. H. T. Vierhaus \and Ing. Petr Pfeifer, MSc, MBA, Ph.D.}
 \myyear{2018}
@@ -85,9 +87,6 @@ linewidth=\textwidth
 %zeigen (Petr!) wie man bei den FEC-Komponenten Selbsttest-Funktionen einbauen kann.
 % test enc i dec for max freq
 % zobacz czy wszystkie błędy są na pewno naprawiane
-\begin{abstract}
-Wireless communication is more and more commonly used in highly unfavorable environments. Nowadays it's not only cellular communication, but also communication within cities, industrial production facilities and other short distance, real-time applications. Such systems have significant demand on safety whilst being vastly exposed not only to signal interferences, multi-path signal propagation and fading effects but also to transient and permanent faults in hardware. 
-\end{abstract}
 %=============================================================
 \input{"1_introduction.tex"}
 %=============================================================
@@ -108,6 +107,5 @@ Wireless communication is more and more commonly used in highly unfavorable envi
 %\cleardoublepage
 \hypersetup{ linkcolor={black}}
 \cleardoublepage
-
 \bibliography{bibliografia}
 \end{document}
