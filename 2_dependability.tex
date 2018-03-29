@@ -137,19 +137,20 @@ The information flow through a system can be corrupted by many different faults.
 \section{Channel Coding} \label{sec:cod}
 In the year 1948 Shannon published a landmarking paper "Mathematical Theory of Communication" where he showed that, with a certain information encoding, the errors induced by a noisy channel can be reduced to any suitable level~\cite{art:Shannon}. With this article he started the era of coding theory and a race to create better and better codes with simple decoding algorithms~\cite{book:Lint}. He laid the mathematical foundation of reliable communication, without indication how to construct the codes and build optimal encoders and decoders.\\
 
-Channel Coding is, generally speaking, a process of adding useful redundancy to the source information in order to recreate it's contents after it arrives at the sink. ECC are used to supervise memory interfaces, hardware operations and wireless communication. Each use case requires different properties of the code. The memory transactions and hardware operations focus on single and double bit errors, while wireless communication needs to handle multiple bit errors. Additionally the implementation of encoding and decoding can either take place in hardware or in software, which implies different complexity and power consumption, but most importantly the execution time and therefore the latency. With the wireless communication replacing the wired connections, the demand on short and efficient coding algorithms, moves the processing of the information into hardware. 
+Channel Coding is, generally speaking, a process of adding useful redundancy to the source information in order to recreate it's contents after it arrives at the sink. ECC are used to supervise memory interfaces, hardware operations and wireless communication. Each use case requires different properties of the code. The memory transactions and hardware operations focus on single and double bit errors, while wireless communication needs to handle multiple bit errors. Additionally the implementation of encoding and decoding can either take place in hardware or in software, which implies different complexity and power consumption, but most importantly the execution time and therefore the latency. With the wireless communication replacing the wired connections, the demand on short and efficient coding algorithms moves the processing of the information into hardware. 
+
 \subsection{Error Detection}
 To conduct any error correction, the error detection has to take place first. Let's assume that the information leaving the source encoder is a binary sequence that can be divided into blocks of length $k$. Each block is denoted as 
 $$u=\{u_1,u_2,...,u_k\}$$ 
-and is called a \textit{message}. Since the information is binary, there are $2^k$ different messages possible. The channel encoder transforms each $message$ into a binary \textit{code word} 
-$$v=\{v_1,v_2,...,v_n\}$$ 
-with length $n$, where $n\geq k$, since the additional information is being added. There are still only $2^k$ valid \textit{code words}, since every \textit{code word} corresponds exactly to one $message$. The set of all valid \textit{code words} is called a code space. It leaves $2^n - 2^k$ \textit{words} that are not used in transmission and are invalid. The ratio $R=k/n$ is called the \textit{code rate} and can be understood as the number of the information bits entering the encoder per transmitted symbol. During the transmission, an \textit{error vector} 
-$$e=\{e_1,e_2,...,e_n\}$$ 
-overlays the \textit{code word} producing a \textit{received sequence} 
-$$r=\{r_1,r_2,...,r_n\}$$
-If the \textit{received sequence} is not a valid \textit{code word}, then the error gets detected. The worst case scenario is when the \textit{error vector} transforms a \textit{code word} into a valid \textit{received sequence} but different then the \textit{message} sent, $r\neq q$. Then the \textit{received sequence} gets accepted and decoded into a wrong $message$. To avoid such situations, the \textit{code words} should lay possibly away from each other. It means that they should differ in as many places as possible. The \textit{hamming distance d} (between two \textit{code words}) is the number of positions, in which both words differ. The number of errors $f_d$, that a code can detect, depends on the minimum hamming distance $d_{min}$ in the code space, which has to satisfy following inequality $d_{min} \geq f_d + 1$.
+and is called a \textit{message} with \textit{k user bits} . Since the information is binary, there are $2^k$ different messages possible. The channel encoder transforms each $message$ into a binary \textit{code word}. In the systematic code, where the information is added at the end of the $message$, the \textit{code word} looks as follows:
+$$v=\{v_1,v_2,...,v_{n+k}\} = \{u_1,u_2,...,u_k, c_0,c_1,...,c_{n}\}$$ 
+with length $n+k$. There are \textit{n check bits} appended to the \textit{user bits}. There are only $2^k$ valid \textit{code words}, since every \textit{code word} corresponds exactly to one $message$. The set of all valid \textit{code words} is called a code space. It leaves $2^n$ \textit{words} that are not used in transmission and are invalid. The ratio $R=k/(n+k)$ is called the \textit{code rate} and can be understood as the number of the information bits entering the encoder per transmitted symbol. During the transmission, an \textit{error vector e} overlays the \textit{code word u} producing a \textit{received sequence v'} 
+$$e=\{e_1,e_2,...,e_{n+k}\}$$ 
+$$v'=\{v'_1,v'_2,...,v'_n\} = \{e_1 \oplus v_1, e_2 \oplus v_2,...,e_{n+k} \oplus v_{n+k} \}$$
+
+If the \textit{received sequence} is not a valid \textit{code word}, then the error gets detected. The worst case scenario is when the \textit{error vector} transforms a \textit{code word} into a valid \textit{received sequence} but different then the \textit{code word} sent, $v'\neq v$. Then the \textit{received sequence} gets accepted and decoded into a wrong $message$. To avoid such situations, the \textit{code words} should lay possibly away from each other. It means that they should differ in as many places as possible. The \textit{hamming distance d} (between two \textit{code words}) is the number of positions, in which both words differ. The number of errors $f_d$, that a code can detect, depends on the minimum hamming distance $d_{min}$ in the code space, which has to satisfy following inequality $d_{min} \geq f_d + 1$.
 \subsection{Error Correction}
-If the \textit{code word} overlaid with \textit{error vector} results in the \textit{received sequence} outside of the code space, then the error gets detected. The~\autoref{fig:hamming_dist} shows the hamming distance cube for a 3 bit binary word. Each vertex symbolizes a possible \textit{received sequence}, where only words $\{000\}$ and $\{111\}$ are valid \textit{code words}. The distance between the words is equal to the number of edges between them. The hamming distance between the \textit{code words}, being the \textit{minimum hamming distance} is $d_{min}=3$.
+If the \textit{code word} overlaid with \textit{error vector} results in the \textit{received sequence} outside of the code space, then the error gets detected. The~\autoref{fig:hamming_dist} shows the hamming distance cube for a 3 bit binary word. Each vertex symbolizes a possible \textit{received sequence}, where only words $\{000\}$ and $\{111\}$ are valid \textit{code words}. The distance between the words is equal to the number of edges between them. The hamming distance between the \textit{code words}, being the \textit{minimum hamming distance} is in this case $d_{min}=3$.
 
 \begin{figure}[H]
 \centering
@@ -158,15 +159,88 @@ If the \textit{code word} overlaid with \textit{error vector} results in the \te
 \label{fig:hamming_dist}
 \end{figure}
 
-Assuming that the number of errors is $f_c = 1$, then upon reception of erroneous data, the distance between the \textit{received sequence} and valid \textit{code word} will also be $d = 1$. The \textit{received sequences} form two disjoint sets $r_{000}=\{001,010,100\}$ and $r_{111}=\{110,101,011\}$, where $r_{000}$ represents all possible received messages, corrupted by single bit error, upon sending the $\{000\}$ message and the $r_{111}$ - upon sending the $\{111\}$ message. The reception of any word from each set unambiguously refers to only one valid \textit{code word} (assuming the minimum distance decoding scheme), that could have been sent, hence the error correction is possible. To correct $f_c$ errors the code needs to have $d_{min} >= 2f_c+1$. If the $d_{min}$ is even, then there will always be some words in the \textit{received sequence set} that have equal distance to more than one \textit{code word}. If the $d_{min} = 2f_c+1$, the code is called perfect. A perfect code is an optimal code, where every \textit{received sequence} can be unambiguously subordinated to a valid \textit{code word}. The distances between all code words are equal and maximal. The code has to satisfy the following equality $k=ld\sum_{i=0}^{f_c} \binom{n}{i}$ to be called a perfect code. Perfect codes use their redundancy fully, guaranteeing maximal protection by minimal overhead.
+Assuming that the number of errors is $f_c = 1$, then upon reception of erroneous data, the distance between the \textit{received sequence} and valid \textit{code word} will also be $d = 1$. The \textit{received sequences} form therefore two disjoint sets $r_{000}=\{001,010,100\}$ and $r_{111}=\{110,101,011\}$, where $r_{000}$ represents all possible received messages, corrupted by single bit error, upon sending the $\{000\}$ message and the $r_{111}$ - upon sending the $\{111\}$ message. The reception of any word from each set unambiguously refers to only one valid \textit{code word} (assuming the minimum distance decoding scheme), that could have been sent, hence the error correction is possible. To correct $f_c$ errors the code needs to have $d_{min} >= 2f_c+1$. If the $d_{min}$ is even, then there will always be some words in the \textit{received sequence set} that have equal distance to more than one \textit{code word}, making the correction impossible. If the $d_{min} = 2f_c+1$, the code is called perfect. A perfect code is an optimal code, where every \textit{received sequence} can be unambiguously subordinated to a valid \textit{code word}. The distances between all code words are equal and maximal. The code has to satisfy the following equality $k=ld\sum_{i=0}^{f_c} \binom{n}{i}$ to be called a perfect code. Perfect codes use their redundancy fully, guaranteeing maximal protection by minimal overhead.
 
 \subsection{Types of Codes}
-For the last 50 years, scientists have developed many codes, that suit different purposes. Let's focus on binary codes, that are constructed from an alphabet \{0,1\}. In hardware dependability, there are two main fields of application and therefore two groups of codes:
+For the last 70 years, scientists have developed many codes, that suit different purposes. Let's focus on binary codes, that are constructed from an alphabet \{0,1\}. In hardware dependability, there are two main fields of application and therefore two groups of codes:
 \begin{itemize}
-\item The Hamming code~\cite{art:Hamming}, with the ability of detection and correction of single bit errors and its extended version for double error detection and single error correction (DED-SEC) and the Hsiao code~\cite{art:Hsiao}, which is also a DED-SEC code. They are both widely used in hardware supervision, like memory interfaces. They are linear block codes, which means that the source information is split into blocks and coded with utilization of linear boolean functions only (XOR operations), therefore all codewords are linear combinations of each other. Hence they are commonly reffered as vectors, from linear algebra. The decoding can happen within one clock cycle, which is necessary in protecting hardware interfaces.  
+\item The Hamming code~\cite{art:Hamming}, with the ability of detection and correction of single bit errors and its extended version for double error detection and single error correction (DED-SEC) and the Hsiao code~\cite{art:Hsiao}, which is also a DED-SEC code. They are both widely used in hardware supervision, like memory interfaces. They are linear block codes, which means that the source information is split into blocks and coded with utilization of linear boolean functions only (XOR operations), therefore all codewords are linear combinations of each other. Hence they are commonly referred as vectors, from linear algebra. The decoding can happen within one clock cycle, which is necessary in protecting hardware interfaces.  
 \item The BCH code, as a multiple bit error correcting code, with significantly longer decoding time then DED-SEC codes. It uses a hard decision decoding scheme based on "hard coded" algebraic functions, in this case a polynomial division with use of LFSR. It is a linear cyclic code, where all codewords are not only linear combinations of each other, but also every code word is just a shifted version of another one. This code is used in wireless communication because of it ability of multiple bit error correction.\\
 The Low Density Parity Codes (LDPC)~\cite{art:LDPC} and Turbo codes~\cite{art:turbo} are the examples of soft decision methods, where the best candidates for correct code words are identified and then selected by majority voters. They take longer decoding time then BCH codes, but as few other codes, they come very close to the Shannon's limit, allowing highest information throughput within noisy channels. They also contain many memory cells, exposing them to transient faults.\\
 \end{itemize}
+
+\subsection{Construction of a DED-SEC Hsiao Code}
+While the theory behind ECC is well known and was introduced already almost 70 years ago, the creation of optimal codes is still a subject to the intensive research. The ease of implementation and short execution times combined with the high protection against errors are the key factors in creating codes. Since the code detection and correction capabilities are strongly dependent on the minimal hamming distance, the creation of codes focuses on keeping the maximal distance by minimal code word length. In linear codes the creation of check bits results from linear operations on the user bits. The check bits are in fact group parity bits that may be implemented in hardware as simple XOR operations. The specific user bits that take part in calculation of every check bit can be represented using the generator matrix $G$. The generator matrix for Hsiao Code is shown below:
+\begin{equation*}
+\underbrace{
+\vphantom{\bordermatrix{&&&&&&&&\cr &1&0&0&0&1&1&1&0\cr&0&1&0&0&0&1&1&1\cr&0&0&1&0&1&0&1&1\cr&0&0&0&1&1&1&0&1\cr}
+}\left[u_0,u_1,u_2,u_3 \right ]}_{u}
+\cdot 
+\underbrace{\bordermatrix{
+&v_0&v_1&v_2&v_3&v_4&v_5&v_6&v_7\cr 
+&1&0&0&0&1&1&1&0\cr
+&0&1&0&0&0&1&1&1\cr
+&0&0&1&0&1&0&1&1\cr
+&0&0&0&1&1&1&0&1\cr
+}}_{G_{4\times 8}} = 
+\underbrace{
+\vphantom{\bordermatrix{&&&&&&&&\cr &1&0&0&0&1&1&1&0\cr&0&1&0&0&0&1&1&1\cr&0&0&1&0&1&0&1&1\cr&0&0&0&1&1&1&0&1\cr}
+}\left[u_0,u_1,u_2,u_3,c_0,c_1,c_2,c_3 \right ]}_{v}
+\end{equation*}
+The number of columns in the generator matrix specifies the length of the code word and the rows correspond to the number of user bits. The multiplication of the code word vector with the generator matrix results in following check bits: 
+
+\begin{align}
+\begin{aligned}
+c_0 &= u_0 \oplus u_2 \oplus u_3  \\
+c_1 &= u_0 \oplus u_1 \oplus u_3  \\
+c_2 &= u_0 \oplus u_1 \oplus u_2  \\
+c_3 &= u_1 \oplus u_2 \oplus u_3 
+\end{aligned}
+\end{align}
+
+Every check bit depends on three user bits, visible as three ones in the corresponding columns of the G matrix. The matrix contains an identity matrix, responsible for the presence of the user bits in the code word.
+
+The linear codes are most commonly represented by their parity-check matrices $H$, from which all code properties can be derived. While the generator matrix describes the encoding operation, the parity check matrix is used to decode the received sequence $v'$ into an error-free message. The $H$ matrix of a DED-SEC Hsiao Dode looks as follows:
+\begin{equation*}
+\underbrace{
+\vphantom{\bordermatrix{&&&&&&&&\cr &1&0&0&0&1&1&1&0\cr&0&1&0&0&0&1&1&1\cr&0&0&1&0&1&0&1&1\cr&0&0&0&1&1&1&0&1\cr}
+}\left[v_0',v_1',v_2',v_3',v_4',v_5',v_6',v_7' \right ]^T}_{v}
+\cdot \underbrace{\bordermatrix{
+&&&&&&&&\cr 
+ s_1 &1& 0 & 1 & 1 &1&0&0&0 \cr 
+ s_2 &1& 1 & 0 & 1 &0&1&0&0 \cr 
+ s_3 &1& 1 & 1 & 0 &0&0&1&0\cr 
+ s_4 &0& 1 & 1 & 1 &0&0&0&1
+}}_{H_{4\times 8}} = 
+\underbrace{
+\vphantom{\bordermatrix{&&&&&&&&\cr &1&0&0&0&1&1&1&0\cr&0&1&0&0&0&1&1&1\cr&0&0&1&0&1&0&1&1\cr&0&0&0&1&1&1&0&1\cr}
+}\left[s_1,s_2,s_3,s_4 \right ]^T}_{\text{syndromes}}
+\end{equation*}
+
+The number of columns is equal to the length of the code word, and the number of rows denotes the number of check bits. The number of 1-positions in each column is odd and the hamming distance between any two rows is kept equal 1. There is also a minimal number of 1-positions in the whole matrix. There is no column with all zeros and every column is distinct. If the requirements are met, the code has a minimal distance of $d_{min} = 4$ and therefore the code can correct The result of multiplying the received sequence vector with the parity check matrix is called the syndrome. Syndromes get calculated in the following way:
+
+\begin{align}
+\begin{aligned}
+s_1 &= u_0' \oplus u_2' \oplus u_3' \oplus c_0' \\
+s_2 &= u_0' \oplus u_1' \oplus u_3' \oplus c_1' \\
+s_3 &= u_0' \oplus u_1' \oplus u_2' \oplus c_2' \\
+s_4 &= u_1'\oplus u_2' \oplus u_3' \oplus c_3' \\
+\end{aligned}
+\end{align}
+
+The computation of syndromes consists of two stages. Firstly the received user bits are XORed in the same way as in the encoder and then again XORed with the corresponding received check bit. In an error-free transmission all syndromes should be equal zero, since the user bits will be XORed with their parity bit. In reality the decoder really contains an encoder module, which calculates parity bits from the received vector exactly in the same way as the encoder module from transmitter. The calculated check bits are compared with the received check bits and the error syndrome is created. Any non zero value of the syndrome indicates some sort of error in the received vector. Let's analyze the steps to understand how syndromes may be used for error detection and correction. 
+
+In case that an error appeared in one of the user bits, there will be exactly 3 non zero syndromes. The only syndrome remaining zero, will be the one that does not involve the faulty bit in its computation. In case of an error in $u_1'$ it will be $s_1$, for $u_2'$ - $s_2$, for $u_3'$ - $s_3$ and for $u_0'$ - $s_4$. To repair the error, the appropriate user bit needs to be simply flipped.
+
+In case of a single error in one of the received check bits, exactly one syndrome, associated with this check bit, will be non-zero. $s_1$ for $u_0'$, $s_2$ for $u_1$, etc. This situation doesn't require any correction, since all user bits are error-free. 
+
+In case of a double error in user bits or one user bit and one check bit, the result will be two syndromes equal 1. There is no way to tell which bits were flipped, since more combinations result in the same syndrome configuration.
+
+For three errors the number of non-zero syndromes will be either 1 or 3, exactly as in the case of single bit errors. This situtation leads to mis-correction and cannot be detected in this form of code.
+
+The Hsiao Code is a SEC-DED code, where an odd number of errors produces an odd number of flipped syndromes and an even number of errors - an even number of non-zero syndromes. Every multiple-bit error, with hamming weight greater then 2 can trigger a false repair or in case of even number of errors, it can get accepted as fault free. The number of ones in the parity check matrix corresponds to the number of XOR gates required to implement the code functionality. 
+
+
 \subsection{FEC limitations}\label{sub:limits}
 ECC can only be utilized in an environment, where the input information is equal to the output information. It is therefore a perfect solution for memory operations or communication, but it is hard to protect logical or arithmetic operations against transient faults or to detect permanent faults with use of ECC only. The special predictors can be used to evaluate the expected output of an operation, but they may prove to be almost as expensive, in terms of resources, and complicated as the protected units. In wireless communication, the transient faults and parameter shifts in digital and analog hardware modules laying between encoder and decoder are masked by the ECC used for transmission. The error detection within each module requires almost a duplication in hardware because their outputs are not comparable with their inputs. Moreover, in the mixed signal circuits, one is analog and the other digital. Assuming that each node, in bidirectional communication, consists of transmitter and receiver, that contain the same number of layers for the signal to be passed through. An off-line direct connection between corresponding layers of transmitter and receiver provides a subsystem with identical input and output format. Such connection would allow the use of ECC to detect permanent hardware faults in the subsystem. The idea is elaborated in~\autoref{sec:shorts}.
 

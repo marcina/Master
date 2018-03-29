@@ -60,7 +60,7 @@
 \renewcommand{\maketitlehookb}{\vspace{1cm}}
 
 \renewcommand{\maketitlehookc}{\vfill\begin{center}
-Supervisor\\\@mysupervisor
+Supervisors\\\@mysupervisor
 \end{center}
 \vspace{3cm}\begin{center}Cottbus, \@myyear.\end{center}
 }
@@ -98,7 +98,7 @@ Supervisor\\\@mysupervisor
 %
 % Customize Table of Contents
 %
-\setcounter{tocdepth}{3} %bookmarks counter = toc counter +1
+\setcounter{tocdepth}{2} %bookmarks counter = toc counter +1
 %\maxtocdepth{subsection}
 \maxsecnumdepth{subsection}
 

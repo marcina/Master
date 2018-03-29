@@ -1,4 +1,4 @@
-\documentclass[]{myclass}
+\documentclass[11pt]{myclass}
 \usepackage[cp1250]{inputenc}
 \usepackage[OT4]{fontenc}
 
@@ -20,6 +20,12 @@
 \usepackage{indentfirst}
 \usepackage{amsmath} %subeq
 \usepackage{mathtools} %split eq
+
+\usepackage{etoolbox}
+\let\bbordermatrix\bordermatrix
+\patchcmd{\bbordermatrix}{8.75}{4.75}{}{}
+\patchcmd{\bbordermatrix}{\left(}{\left[}{}{}
+\patchcmd{\bbordermatrix}{\right)}{\right]}{}{} % make border matrix [] insted of ()
 
 \usepackage{booktabs} % table
 \usepackage{multirow} % table
@@ -45,7 +51,7 @@ linewidth=\textwidth
 
 \author{Marcin Jaros\l aw Aftowicz}
 \title{Hardware Test and fault diagnosis based on extended FEC functions  in wireless communication systems}
-\mysupervisor{Prof. Dr.-Ing. H. T. Vierhaus \and Ing. Petr Pfeifer, MSc, MBA, Ph.D.}
+\mysupervisor{Prof. Dr.-Ing. H. T. Vierhaus \and Prof. Dr. Milo\v{s} Krsti\'{c}\and Ing. Petr Pfeifer, MSc, MBA, Ph.D.}
 \myyear{2018}
 
 \begin{document}
@@ -100,12 +106,11 @@ linewidth=\textwidth
 
 % All appendices and extra material, if you have any.
 \cleardoublepage
-\appendix%
-
-%\input{Rysunki_techniczne.tex}
 %%\input{plyta.tex}
 %\cleardoublepage
 \hypersetup{ linkcolor={black}}
 \cleardoublepage
 \bibliography{bibliografia}
+%\appendix%
+%\input{"appendix.tex"}
 \end{document}

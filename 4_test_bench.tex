@@ -334,7 +334,7 @@ UUT                       &mem\_width   &uut\_width &max. frequency \\
 \bottomrule
 \end{tabular}
 \centering
-\caption{Test for max. frequency}
+\caption{Test Test Bench for max. frequency}
 \end{table}
 
 After analyzing the results of the test of Inverter with 8 inputs, it started to generate errors at around 501 MHz. The simple comparison of expected values with response vectors didn't show any valuable information, except from many errors on all lines. This means, that the routing is not the problem, because that would result in just some lines failing and some preserving their functionality. After a closer look into the HTML file, a certain pattern is visible. The response seems to be shifted in relation to the expected signal. The analysis of XML file with MATLAB 2015b allows to calculate the shift with cross-correlation function. The result is shown in \autoref{fig:xcorr}. The received signal has to be shifted by 4 clock cycles to correspond to the expected signal. The shift amounts exactly the same number of clock cycles in all failed tests. Four clock cycles mean four test patterns that get lost at the beginning of the test. By this configuration, four test patterns create exactly one memory word, hence there is exactly one memory word missing, the first one. The address generator output is stored on negative memory clock edge, while the enable signal is generated on positive one. This is due to the fact, that the address and data has to be stable before the positive edge of memory clock. The circuit has therefore just a half of the clock cycle to calculate the first address, which leads to storing two words in the first location, hence the first word is overwritten, resulting in shift in response vector.
