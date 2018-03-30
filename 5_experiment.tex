@@ -38,46 +38,6 @@ The FEC in ParSec project is realized thanks to the Programmable Encoder Archite
 \label{fig:PENCA}
 \end{figure}
 
-\section{Functional Shorts Concept}\label{sec:shorts}
-The hard errors due to permanent faults in hardware modules require special treatment since they can even prevent the synchronization of transceiver and receiver and therefore cannot be so easily corrected by FEC. Since permanent faults don't disappear, they also need special repair mechanism, which often means a doubling of the unit or its parts. The fault diagnosis proves to be complicated, especially in the mixed signal and analog parts, moreover when the access to this parts is limited. When an IP is shipped as a "black box" and there is no possibility to implement any internal DfT techniques, some sort of external test is required. 
-
-Thanks to the ECC, a precise detection of error positions in the received bit stream is possible, as long as the error count doesn't exceed ECCs correcting capabilities. The idea behind the diagnostic test based on extended FEC functions is to use the existing FEC redundancy and detect not only soft errors and transmission errors, but also hard errors due to permanent faults. As mentioned in the~\autoref{sub:limits} the ECC can be used in hardware monitoring only if the input and output of the UUT are identical. Since the wireless communication is usually a duplex communication, every node happens to own both, the transmitter and receiver. They consist of complementary building blocks. Every modulator in transmitter is substituted with a demodulator in receiver, every encoder with decoder. The basic task of the receiver modules is to recreate the original information sent by transmitter, step by step, layer by layer. A diagnostic test would require to short the transmitter with receiver and systematically short the outputs of every module with the inputs of their corresponding module. With encoder and decoder in one closed system, it should be possible to detect the exact positions of errors in the bitstream and identify faulty units. The decoder would act as a response analyzer. In this way, the information leaving FEC encoder arrives at the input of FEC decoder, manipulated only by permanent faults in the shorted modules. The idea is presented in~\autoref{fig:Shorts}. 
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.65\textwidth]{figures/Shorts.png}
-\caption{Transmitter and receiver shortcut idea for diagnostic test purposes}
-\label{fig:Shorts}
-\end{figure}
-
-In order to conduct such test, the physical shorts need to be implemented. A simple multplexer demultiplexer pair with the common control logic would allow to choose between a normal functionality and shortened path. Additionally the test vectors need to be generated or stored in ROM. A good alternative would also be to do a "fake" start-up to detect all errors that may prevent the synchronization in advance. The test may be followed by random test to uncover other faults. The generation can happen even in software and be sent as normal information over the channel. The fault detection occurs thanks to an extended decoder functionality, which signalizes, with a special ISERR output, if the current bit of the bit stream has been flipped or not. This functionality is intended also to be used during the normal data flow, to adjust the transmission parameters and adapt the FEC algorithm. A simple counter connected to this special output counts the number of bit flips in every block. This information can be used for channel quality estimation, since the more errors per message, the worse is the transmission channel quality. 
-
-The idea of functional shorts has been implemented into the Test Bench together with error injection capability and is shown in \autoref{fig:short_ena}. The injected error vector travels through the design together with test data. This guaranties the proper alignment of the error vector with the test vector at any time, also during the shortcut, when the path is shorter. It flips the specified bits of the output of any chosen module to simulate the possible effects of hardware faults on the processed information. The implementation lacks real modules, except for the encoder and decoder. Every other module is implemented as a simple delay in the digital information flow (flip flop) and XOR gate to conduct the error injection. They also have special enable signal to choose which module should occur as faulty. The enable signal is exclusive, meaning that only one module may be faulty at the same time. The Air simulates the communication channel. There is also a programmable delay to variate the execution time of the test and to simulate the fact, that the number of clock cycles, needed for the information to pass from the encoder to decoder, is not constant in all tests.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{figures/Short_ena_err.png}
-\caption{Implementation of functional shorts into the Test Bench}
-\label{fig:short_ena}
-\end{figure}
-
-\subsection{Diagnostic test Procedure}
-Let's assume, that the FEC decoder is fault-free and that every module owns some sort of repair ability. The erroneous unit would be the Radio Frequency unit of the receiver (marked red in \autoref{fig:short_ena}).
-\begin{enumerate}
-    \item Start the test by enabling the shortcut nr. 3, closing the test loop between transmitter and receiver, excluding all transmission errors from the test.
-    \item Conduct the test by running all test vectors through the design, placing them on the inputs of FEC encoder, until the first occurrence of the ISERR output of the decoder module.
-    \item Enable Shortcut nr. 2.
-    \item Run test again and detect no errors, since the faulty unit is not in the test loop.
-    \item Run repair procedure on the transmitter RF unit.
-    \item Enable Shortcut nr. 3.
-    \item Run the test only to see the ISERR is high again, because the repaired unit was not the faulty one.
-    \item Run repair procedure on RF unit of the receiver, revert the repair of the transmitter RF unit.
-    \item Start the test again to see no errors detected.
-    \item Log the information about the repaired unit.
-    \item Switch off all Shortcuts and start normal operation.
-\end{enumerate}
-
-After running the tests, all injected errors have been detected and the shorts system was able to identify the faulty unit. The number of injected faults have deliberately never exceeded the error correction capabilities of the decoder and the decoder was always assumed to be fault-free. Additionally the faults have been injected in random places, not necessarily corresponding to real permanent faults effects. Since the encoder and decoder are the only real modules in the test loop and their fault free functionality is crucial to the successful diagnostic test, they have been tested in isolated environment to understand their behavior and test their limits and possible impact on the whole system.
 
 \section{Test of BCH(1023,943) Encoder}
 The tested encoder is a BCH encoder taking 943 payload bits and calculating 80 parity bits. The encoder is actually a part of the PENCA architecture, without any redundant test and configuration circuitry. The encoder consists of an LFSR for parity calculations and the counter to keep track on the number of input user bits. Before the counter reaches 943 bits, it forwards the user bits to the output. Then the parities are shifted out with "dummy" input bits. The parity calculation is obtained by dividing the input polynomial by the generator polynomial of the encoder. The rest of the division is the parity polynomial. The general architecture of a BCH encoder using a LFSR for polynomial division is shown in \autoref{fig:enc_0}. Since the test bench developed during the project allows a test with wide range of frequencies, it may be possible to cause some delay faults in th encoder architecture and examine, how they influence the output bit stream.
