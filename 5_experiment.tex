@@ -57,6 +57,7 @@ The raised frequency together with very long interconnect simulated a delay faul
 
 
 \section{Test of BCH(1023,943) Decoder}
+
 For any positive integers $m \geq 3$ and $t<2^{m-1}$ there exists a binary BCH code with the following parameters \cite{art:BCH_implement}:
 \begin{subequations}
 \begin{align}
@@ -78,8 +79,7 @@ The tested BCH decoder has one serial data input (DIN) and one data output (DOUT
 
 \subsection{Test Decoder for maximal frequency}
 
-The test procedure involving functional shortcuts assumed a fault free functionality of the decoder. It is possible though, that the decoder suffers from any permanent or transient fault itself, giving false negative or false positive results of the test, not mentioning the problems during communication. The decoder was tested for its maximal operational frequency and beyond. The decoder was tested only until its maximal correction capabilities. The isolated version means that the design was surrounded by flip-flops. The direct input and output is always compared with their delayed pairs to check, if the delay fault did not happen on the interface with Test Bench. The unconstrained design allows the tool to automatically place the design in the FPGA. The constrained version forces the tool to place the design closer to the Test Engine. The results are presented in \autoref{tab:dec}.
-
+The test procedure involving functional shortcuts assumed a fault free functionality of the decoder. It is possible though, that the decoder suffers from any permanent or transient fault itself, giving false negative or false positive results of the test, not mentioning the problems during normal communication. The decoder was tested for its maximal operational frequency and beyond. The decoder was tested only until its maximal correction capabilities, meaning 8 injected errors. The error injection happens statically during the data generation. The data is generated in steps. Firstly, 943 random bits are processed by the comm.BCHEncoder block in MATLAB. Then, the coded bitstream is XORed with an error vector with random error positions, but constant hamming weight, creating a data input for the decoder test. The expected result is the output of the MATLAB block, before error injection. The hamming weight of the error vector was increased from 1 to 8 and tested for maximum frequency. The results are summarized in \autoref{tab:dec}
 \begin{table}[h]
 \begin{tabular}{@{}ccccll@{}}
 \toprule
@@ -100,7 +100,7 @@ UUT                       &mem\_width   &uut\_width &error cnt. &\begin{tabular}
 \caption{Test Decoder for max. frequency}\label{tab:dec}
 \end{table}
 
-In the unconstrained version, the routing tool decided to place the isolating registers far away from the decoder and close to the Test Engine. This made the isolation useless and didn't allow to detect the delay faults happening on the interconnects with the Test Engine. Constraining the design was the only way to force the tool to make the isolating registers part of the decoder design. The unconstrained design is presented in \autoref{subfig:uncon}.
+The isolated version means that the design was surrounded by flip-flops and the unconstrained design allows the tool to automatically place the design in the FPGA. The direct input and output is always compared with their delayed pairs to check, if the delay fault did not happen on the interface with the Test Bench. The isolation itself did not prevent delay faults on interconnects to manifest and influence the test results. When the frequency was raised above 300 MHz, the unconstrained decoder started to have errors on $DOUT$ output without errors on $ISERR$ output. This situtation is not possible, since the $ISERR$ signal is responsible for flipping the $DOUT$ bits. Hence the error happens in the decoders interface although the design was isolated with additional flip-flops. Both, the delayed and direct paths were erroneous, which prevented those faults from being detected. The reason was the design placement. In the unconstrained version, the palcing tool decided to place the isolating registers far away from the decoder and close to the Test Engine. This made the isolation useless and didn't allow to detect the delay faults happening on the interconnects with the Test Engine. Constraining the design was the only way to force the tool to make the isolating registers part of the decoder design and in consequence, to detect interconnect faults. The unconstrained design is presented in \autoref{subfig:uncon}, while the constrained design is showed in \autoref{subfig:con}.
 
 \begin{figure}[h]
 \centering
@@ -121,13 +121,39 @@ In the unconstrained version, the routing tool decided to place the isolating re
 \label{fig:dec_routing}
 \end{figure}
 
-Since the design can be influenced by constraining the placement tool, the further tests were conducted on a decoder enclosed in so called PBLOCK. The PBLOCKS are areas in the FPGA, that force the placement tool to try to fit parts of the design inside of them. After drawing the PBLOCK between the old decoder position and the test engine, the decoder was placed closer to the test engine, so the delay fault at the interconnect should appear later and the delayed and direct signal should differ. This situation in presented in \autoref{subfig:con}. The detection of delay faults at interconnects is now possible. The tests of constrained design showed that the maximal frequencies were higher, because the distances between various cells were smaller. The design has been closed in smaller space, making the circuit more dense and the cells were repositioned. The maximal frequencies of the constrained design have been presented in \autoref{tab:dec}.
+The PBLOCKS are areas in the FPGA, that force the placement tool to try to fit parts of the design inside of them. After drawing the PBLOCK between the old decoder position and the test engine, the decoder was placed closer to the test engine, so the delay fault at the interconnect should appear later and the delayed and direct signal should differ. The detection of delay faults at interconnects is now possible. The tests of constrained design showed that the maximal frequencies were higher, because the distances between various cells were smaller. The design has been closed in smaller space, making the circuit more dense and the cells were repositioned. The maximal frequencies of the constrained design have been presented in \autoref{tab:dec}.
+
+The XML file returned by the test engine allows to examine the failed tests and see where the errors occur and in what number. Every test at cut-off frequency simulates some delay faults and shows the misbehavior of the longest paths in the design. The first test was conducted on isolated constrained design of the decoder. There were 1000 code words sent and every code word had one injected error. At normal frequency, this amount of errors is easily correctable by the decoder, but at the cut-off frequency, the decoder starts to produce some errors by itself. The cut-off frequency for the decoder with 1 injected error is 229 MHz. The test was conducted with 230 MHz. The result of the test is summarized in 3 subfigures in \autoref{fig:dec_3}. 
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/1000_tests_decoder_overtacted_230_1_error.png}
+\caption{Test of BCH Decoder with 1 injected error over the cut-off frequency}
+\label{fig:dec_3}
+\end{figure}
+
+The most left hand-side subfigure represents the user bits of the received code word, containing 1000 received code word, each 943 bits long. The middle figure represents the received parity bits 1000 code words with 80 parities. Every rectangle with a dot represents an error that the decoder produced by itself. The expected results were calculated using the MATLAB 2015b comm.BCHDecoder.
+
+The error distribution is random, data dependent. For the decoder to produce an error, either the syndrome calculation failed or the Key Equation Solver or Chien Search Block. The single syndrome computation is very similar to the parity computation in the encoder, since it also involves LFSR. The encoder test revealed, that a LFSR doesn't fail at such low frequency, hence the errors are produced somewhere in the Key Solver or Chien Search Block. If the Chien Search Block failed, it could produce more errors, then the theoretical decoder correction capability. Such thing was not visible during any of the tests. The fault is therefore probably in the Key Equation Solver or in the control logic.
+
+Another interesting problem is the behavior of the decoder when no errors are injected. During the cut-off frequency test, the maximal frequency for isolated constrained decoder was 319 MHz. After sending 1000 valid code words, with no errors injected and raisng the test frequency to 320 MHz, the decoder started to produce rather repeatable errors. The result is showed in \autoref{fig:dec_2}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/1000_tests_0_faults_320_MHz_1.png}
+\caption{Test of BCH Decoder with 0 injected errors over the cut-off frequency}
+\label{fig:dec_2}
+\end{figure}
+
+In the test with no injected errors, the syndromes and therefore the parameters of error locator polynomial should be zero at all times. The syndromes calculated with use of LFSR should be correct at this frequency. Again the Key Equation Solver is probably responsible for this error patterns.
+
 
 \subsection{Test Decoder for Maximal Error Detection}
 
-In the Functional Short Test, only the ISERR output is monitored, since the data is irrelevant. In normal function, the decoder returns only 943 corrected user bits. The tested decoder returns also information of flipped parity bits, indicating if any error happened to the parity bits. The observation of 80 parity bits is crucial in error detection, since the whole vector travels through the tested design and can be disturbed in any position, not only in the user bit space. The underlaying BCH code is capable of correcting 8 bit errors, so the minimal hamming distance needs to be at least 17. With such a big hamming distance, the code should be able to detect up to 16 bit errors. 
+In the Functional Short Test, only the ISERR output is monitored, since the data is irrelevant. In normal function, the decoder returns only 943 corrected user bits. Upon detection of an error in the parity bits only, no correction is necessary, since the user bits are not changed. In the tested decoder however, the information about erroneous parity bits is easily accessible by monitoring the $ISERR$ output for another 80 clock cycles. The observation of 80 check bits is crucial in error detection, since the whole vector travels through the tested design and can be disturbed in any position, not only in the user bit space. Loosing the information about the 80 check bits, would make some errors undetectable, like all errors happening inside of an encoder, which happen only to the parity bits. 
 
-The \autoref{fig:dec_1} shows a result of a simple test, where randomly generated data was "XORed" with randomly generated error vectors with raising hamming weight. Each test consists of 1000 messages and the error number is raised from 1 to 18. The decoder successfully detects and corrects all errors in those messages, where the number of errors does not exceed 8. It fails to detect any higher number of errors, giving a detection rate of about 63\%. A successful detection means that the code word was not simply accepted as fault-free and some sort of correction took place. The corrected bits don't correspond to the injected errors for error count above 8. The error vector simply transforms code words into invalid vectors laying somewhere within correction spheres of another code words. The miscorrection takes place, which transforms the vectors into invalid code words. The miscorrection is indistinguishable from normal correction and is not reported by the decoder, which is a disadvantage during the normal use. Since the BCH code is not a perfect code, the distances between neighboring code words are sometimes bigger then the minimal hamming distance of the code. The implication is that there is a possibility that a code word gets transformed by an error vector into an invalid vector laying outside of all error correcting spheres. Such situtation is not detected and the invalid vector gets accepted as a fault-free code word. The inability of error detection up to 16 bits shows that the decoder was implemented only for error correction purposes and does not present the full functionality of the underlaying code.
+The underlaying BCH code is capable of correcting 8 bit errors and detecting 16. The blue bars in \autoref{fig:dec_1} show a result of a simple test, where randomly generated data was "XORed" with randomly generated error vectors with raising hamming weight. Each test consists of 1000 messages and the error number is raised from 1 to 18. The decoder successfully detects and corrects all errors in those messages, where the number of errors does not exceed 8. It fails to detect any higher number of errors, giving a detection rate of about 63\%. A successful detection means that the code word was not simply accepted as fault-free and some sort of correction took place. The corrected bits don't necessarily correspond to the injected errors for error count above 8. The error vector simply transforms code words into invalid vectors laying somewhere within correction spheres of other code words. The miscorrection takes place, which transforms the vectors into invalid code words. The miscorrection is indistinguishable from normal correction and is not reported by the decoder, which is a disadvantage during the normal function. Since the BCH code is not a perfect code, the distances between neighboring code words are sometimes bigger then the minimal hamming distance of the code. The implication is that there is a possibility that a code word gets transformed by an error vector into an invalid vector laying outside of all error correcting spheres. Such situtation is not detected and the invalid vector gets accepted as a fault-free code word. The inability of error detection up to 16 bits shows that the decoder was implemented only for error correction purposes and does not present the full functionality of the underlaying code.
 
 \begin{figure}[h]
 \centering
@@ -136,72 +162,27 @@ The \autoref{fig:dec_1} shows a result of a simple test, where randomly generate
 \label{fig:dec_1}
 \end{figure}
 
-Because the Test Engine allows tests with higher frequencies and the cut-off frequency of the decoder is known to be 229 MHz, the decoder was tested at 230 MHz for its maximal error detection. The result is shown in \autoref{fig:dec_230}
+Because the Test Engine allows tests with higher frequencies and the cut-off frequency of the decoder is known to be 229 MHz, the decoder was tested at 230 MHz for its maximal error detection. The result is shown in \autoref{fig:dec_1}. Since the cut-off frequency is lower for higher error counts, another test was conducted at 220 MHz, to show how the error detection of the decoder changes together with the frequency.
+
+The error detection capability of the decoder was diminished by delay faults happening at the cut-off frequency and above. It fails to reliably detect any number of errors, having a 99\% detection rate of single bit errors and 82\% for double bit errors.
+
+The error correction is also dependent on frequency and gets diminished at cut-off frequency. The result of the degradation is visible in \autoref{fig:dec_2}.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth]{figures/max_detection_230.png}
-\caption{The error detection limits of the decoder at 230 MHz}
+\includegraphics[width=\textwidth]{figures/1000_tests_error_detection.png}
+\caption{The error detection limits of the decoder}
 \label{fig:dec_1}
 \end{figure}
 
-The error detection capability of the decoder was diminished by delay faults happening at 230 MHz. It fails to reliably correct any number of errors, having a 99\% detection rate of single bit errors and 82\% for double bit errors.
 
-The XML file returned by the test engine allows to examine the failed tests and see where the errors occur and in what number. The result evaluation of the test with 1 induced error is showed in \autoref{fig:dec_3}. There are 1000 messages to be corrected and the frequency is just above the limit, tacting the design with 238 MHz. The right-hand side graph shows the total number of errors resulting from overtacting. Their colors correspond to the type of output. They should be equal at all times, since the only way to flip the DOUT bit should be through the ISERR bit. The left-hand side graph represents all erroneous messages and the positions of errors. Dots represent the errors in the DOUT signal, the rectangles - errors in ISERR signal. The diamonds symbolize the positions of injected errors.
-
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{figures/1000_tests_1_faults_238_MHz.png}
-\caption{Test of BCH Decoder with 1 injected error over its max. frequency}
-\label{fig:dec_3}
-\end{figure}
-
-When the diamond marker is present without other markers it means, that the error was injected in this position and it was detected and corrected successfully. There are two types of errors. When all three markers reside in one position it means, that there was an error injected in this position and it was expected to be detected and corrected. The detection did not happen, therefore it was not corrected, causing an error both in ISERR and DOUT. All other cases are errors that got wrongly detected and corrected although none were injected in those positions - errors induced by decoder itself, marked as rectangle with dot. 
-
-The error distribution is random, data dependent. The single syndrome computation is very similar to the parity computation in the encoder, since it also involves LFSR. The encoder test revealed, that it doesn't fail at such low frequency, hence the errors are produced somewhere in the Key Solver or Chien Search Block. If the Chien Search Block failed, it could produce more errors, then the theoretical decoder correction capability. Such thing was not visible during any of the tests. The fault is therefore probably in the Key Solver or control logic.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{figures/1000_tests_0_faults_266_MHz_1.png}
-\caption{Test of BCH Decoder with 0 injected errors over its max. frequency}
-\label{fig:dec_2}
-\end{figure}
-
-In the test with no injected errors (\autoref{fig:dec_2}), the syndromes and therefore the parameters of error locator polynomial should be zero at all times. The error positions are not any more data dependent and random, but they occupy mostly the same positions throughout all failed tests. Again the suspected module is the Key Solver.
-
-When the frequency gets closer to 300 MHz another characteristic errors appear in the decoder architecture. At first the result, analyzed as all others, showed a failure of almost all DOUT bits. The plot of this result represents no information at all. In the raw data, it was but visible, that the response signals are somewhat shifted in relation to the expected values. Again a cross-correlation function came to aid and allowed to determine the shift, which is equal $2$. The received signal needs to be shifted by $-2$ (2 to the left) to be aligned with expected signal. The result of the comparison after the shift is shown in \autoref{fig:dec_4}. 
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{figures/100_tests_0_faults_300_MHz_shift_2.png}
-\caption{Test of BCH Decoder with 0 injected error much over its max. frequency}
-\label{fig:dec_4}
-\end{figure}
-
-The number of $ISERR$ errors is different then the number of $DOUT$ errors, which means that the error correction logic is not responsible for the wrong output. The further inspection reveals, that the value of 940th data bit (which is still a payload bit) is the last correctly returned value. All following bits are stuck at the value of the 940th input bit. The relation is shown in the \autoref{fig:shift}.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.65\textwidth]{figures/decoder_parity.png}
-\caption{Response shift in the BCH Decoder tested much over it's max. frequency}
-\label{fig:shift}
-\end{figure}
-
-In the normal operation the parity bits would be 0 and flipped only by Chien Search Block in case of error correction. Since the input data is manipulated only by one logic gate (LUT) during the correction and the $ISERR$ bit is not causing the correction, the error happens in the decoder interface. The design is isolated with additional flip-flops and direct output is always compared with the delayed output to detect the delay errors on the DOUT signal. The same applies for input signal. T
-
-In conclusion, the errors showing up by 300 MHz are due to long paths between the decoder and the test engine, having nothing to do with the internal structure of the decoder.
-
-Failing interconnects lead to interesting conclusion, that the delay faults in the FPGA may be injected by exploiting the placing tools by positioning chosen cells apart from the main design, to guarantee that they will fail as first, when the frequency gets raised. It is important to remind, that the delay faults in real hardware may happen in other paths, not necessarily the longest ones.
-
- The positions of errors did not change, only the frequency, when they started to appear. The delay fault on the interconnect doesn't appear until 365 MHz. This time the delay faults were detected thanks to the delay logic.
-
-The placement of the design seems to have great impact on test results. The delay faults happening on the interface can be detected by delay logic and comparison, but the placement of this logic is also of grave importance. The decoder circuit is unable to detect more errors then it can correct. In case of permanent faults in the decoder, special BIST techniques need to be incorporated, since the faults will have influence on the results of the diagnostic test. The diagnostic test can show that the decoder or encoder is faulty. Since the encoder faults are expected to produce errors in parity bits and the decoder errors reside randomly in the whole code word, the position of the error should give good indication on which module failed. The additional internal test can be conducted with suggested method of testing the LFSRs \cite{art:Gleichner} or in regular decoder circuits, like Hsiao-Code decoders, using spare modules and glitch filters \cite{art:Dicorato}.
-
+The decoder circuit is unable to detect more errors then it can correct. Additionally, in case of permanent faults in the decoder, special BIST techniques need to be incorporated, since the faults will have influence on the results of the diagnostic test. Every permanent fault lowers the correcting and detecting capability of the decoder.
 
 \chapter{Summary}
 
-The diagnostic test is limited by the error detection capability of the decoder. The more errors a decoder can detect, the better chance of reliable test result. In systems with single error correction and double error detection (SEC-DEC), like those implementing extended Hamming-code or Hsiao-code, the common weak point is erroneous error detection in case of triple bit errors and multiple bit errors \cite{art:Dicorato}. The diagnostic test based on those modules may produce false positive results in such systems, assuming that single fault may corrupt more bits in the data bit stream. In communication systems, where data is processed serially, like in BCH encoder and decoder tested in this thesis, the occurrence of multiple bit flips in case of single fault is very high. In case of BCH decoders, it may require to redesign the architecture to implement the capabilities of underlaying ECC fully or in case of PENCA, which is a reconfigurable solution, to choose the code with highest correction capability, which is 15 bit errors in a single message \cite{art:Pfeifer}.
+The diagnostic test is limited by the error detection capability of the decoder. The more errors a decoder can detect, the better chance of reliable test result. In systems with SEC-DED codes, like those implementing extended Hamming-code or Hsiao-code, the common weak point is erroneous error correction in case of triple bit errors and multiple bit errors \cite{art:Dicorato}. This weak point does not influence the Functional Short Test, since only the error detection counts. In case of Hsiao Code, any odd number of errors is detectable, which makes it a great candidate for detecting multiple bit errors during the test. The exact error positions are not mandatory in case of a simple fail-pass test on module level. In case of PENCA, the highest possible error correcting code should be used during the test.
+
+In communication systems, where data is processed serially, like in BCH encoder and decoder tested in this thesis, the occurrence of multiple bit flips in case of a single fault is very high. Both the decoder and encoder are based on LFSRs, which need to be protected against single event upsets. 
 
 Another limitation to the diagnostic test solution is the coverage of only those modules, which lay between encoder and decoder. The source encoding and cryptographic encryption are only two examples of modules, that may reside outside of the test subsystem, not covered by the diagnostic test. For those modules, well established digital test methods need to be applied. The same restriction applies to the decoder architecture itself. It has been admittedly reported, that some decoder architectures, like Hsiao-code decoder are capable of correcting (masking) some of its own hardware faults happening in the embedded encoder structure, under condition that they don't overlap with the transmission errors \cite{art:Dicorato}, but this feature does not cover the entire decoder structure and lowers the error coverage of the deocder. In the BCH decoder if any syndrome is non-zero a correction is triggered, so any fault in syndrome generation unit, that leads to a failure of the unit, will trigger a false correction, therefore an error in output bit stream. The same applies to the Key Solver unit or Chien Search Block. In all cases, the diagnostic test doesn't cover the decoder internal faults so the decoder dependability needs to be taken care of separately. The diagnostic test can help in finding encoder or decoder faulty, since the last shortcut tests only those two modules. In case of failed test, as in all other cases, the repair of one unit is conducted and the test is repeated.
 
