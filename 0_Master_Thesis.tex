@@ -1,4 +1,4 @@
-\documentclass[11pt]{myclass}
+\documentclass[11pt,oneside]{myclass}
 \usepackage[cp1250]{inputenc}
 \usepackage[OT4]{fontenc}
 
@@ -38,6 +38,11 @@ linewidth=\textwidth
     citecolor={blue!70!black},
     urlcolor={blue!70!black}
 }
+%\hypersetup{
+%    linkcolor={black},
+%    citecolor={black},
+%    urlcolor={black}
+%}
 \usepackage{cleveref}
 
 \linespread{1}
@@ -103,7 +108,7 @@ linewidth=\textwidth
 %\cleardoublepage
 \hypersetup{ linkcolor={black}}
 \cleardoublepage
+\appendix
+\input{"appendix.tex"}
 \bibliography{bibliografia}
-%\appendix%
-%\input{"appendix.tex"}
 \end{document}

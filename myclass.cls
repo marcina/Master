@@ -1,7 +1,7 @@
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{myclass}
 
-\ExecuteOptions{a4paper,12pt,twoside}
+\ExecuteOptions{a4paper,12pt,oneside}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{memoir}}
 \ProcessOptions\relax
 \LoadClass{memoir}
@@ -20,7 +20,7 @@
     bookmarksnumbered=true,
     bookmarksopen=false,
     colorlinks=true,
-    pdfpagelayout=TwoPageRight,
+    pdfpagelayout=SinglePage,%TwoPageRight,
     pdfpagemode=UseOutlines,
     pdfstartview=Fit,
     linkcolor=black,
@@ -46,12 +46,14 @@
 
 \renewcommand{\maketitlehooka}{%
 \begin{figure}[H]
-\includegraphics[width=0.5\textwidth]{figures/BTULogo.jpg}
+\hfill\begin{minipage}{.5\textwidth}\centering
+\includegraphics[width=\textwidth]{figures/BTULogo.jpg}
+\end{minipage}
 \end{figure}
 }
 
 \pretitle{\vspace{2cm}\begin{center}%
- Master's thesis\par\vspace{1cm}\Large\bfseries\MakeUppercase}
+ Master thesis\par\vspace{1cm}\Large\bfseries\MakeUppercase}
 \posttitle{\end{center}}
 
 \newcommand{\album}[1]{\unskip ,~#1}
